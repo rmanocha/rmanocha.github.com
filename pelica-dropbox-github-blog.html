@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
         <meta charset="utf-8" />
-        <title>Rishabh's musings - Rishabh Manocha</title>
+        <title>Setting up a Pelican blog using Dropbox and Github Pages</title>
         <link rel="stylesheet" href="/theme/css/main.css" />
 
         <!--[if IE]>
@@ -14,14 +14,19 @@
         <header id="banner" class="body">
                 <h1><a href="/">Rishabh's musings </a></h1>
                 <nav><ul>
-                    <li><a href="/category/devnotes.html">devnotes</a></li>
+                    <li class="active"><a href="/category/devnotes.html">devnotes</a></li>
                     <li><a href="/category/misc.html">misc</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/pelica-dropbox-github-blog.html" rel="bookmark"
+           title="Permalink to Setting up a Pelican blog using Dropbox and Github Pages">Setting up a Pelican blog using Dropbox and Github Pages</a></h1>
+    </header>
 
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="/pelica-dropbox-github-blog.html">Setting up a Pelican blog using Dropbox and Github Pages</a></h1>
+    <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2014-03-30T08:30:00">
                 Sun 30 March 2014
@@ -32,7 +37,7 @@
         </address>
 <p>In <a href="/category/devnotes.html">devnotes</a>. </p>
 <p>tags: <a href="/tag/pelican.html">pelican</a><a href="/tag/github.html">github</a></p>
-</footer><!-- /.post-info --><p>I just wanted to walk through how I set this blog up - both as a <em>How to</em> for others and for posterity. If it isn't obvious yet, this blog is powered by <a href="http://blog.getpelican.com/">Pelican</a> (the version I'm using as of this writing in 3.3) and is hosted on <a href="http://pages.github.com/">Github pages</a>. What isn't obvious yet is that, in the background, <a href="http://dropbox.com">Dropbox</a> is helping out too.</p>
+</footer><!-- /.post-info -->      <p>I just wanted to walk through how I set this blog up - both as a <em>How to</em> for others and for posterity. If it isn't obvious yet, this blog is powered by <a href="http://blog.getpelican.com/">Pelican</a> (the version I'm using as of this writing in 3.3) and is hosted on <a href="http://pages.github.com/">Github pages</a>. What isn't obvious yet is that, in the background, <a href="http://dropbox.com">Dropbox</a> is helping out too.</p>
 <p>So the structure I ended up following was to create a new folder in my Dropbox folder - I called it <code>gh-blog</code>. Once in this folder, I follow the following steps:</p>
 <div class="highlight"><pre>sudo pip install virtualenv virtualenvwrapper 
 // setup virtualenvwrapper
@@ -98,39 +103,11 @@ git push
 
 
 <p>Tada. I was now able to browse to <a href="http://rmanocha.github.io">http://rmanocha.github.io</a> and see my freshly minted blog post.</p>
-<p>This setup allowed me to store my raw, markdown formatted blog posts somewhere (I didn't want to pay for a github repository) that was backed up and (sort of) version controlled while still publishing the blog posts I wanted to, to github. So far, things seem to be working smoothly.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+<p>This setup allowed me to store my raw, markdown formatted blog posts somewhere (I didn't want to pay for a github repository) that was backed up and (sort of) version controlled while still publishing the blog posts I wanted to, to github. So far, things seem to be working smoothly.</p>
+    </div><!-- /.entry-content -->
 
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/hello-world.html" rel="bookmark"
-                           title="Permalink to Hello World">Hello World</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2014-03-29T10:40:00">
-                Sat 29 March 2014
-        </abbr>
-
-        <address class="vcard author">
-                By <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/misc.html">misc</a>. </p>
-
-</footer><!-- /.post-info -->                <p>New blog (yet again)</p>
-                <a class="readmore" href="/hello-world.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-            </ol><!-- /#posts-list -->
-<p class="paginator">
-    Page 1 / 1
-</p>
-            </section><!-- /#content -->
+  </article>
+</section>
         <section id="extras" class="body">
                 <div class="social">
                         <h2>social</h2>
