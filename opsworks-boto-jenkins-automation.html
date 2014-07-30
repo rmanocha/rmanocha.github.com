@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
         <meta charset="utf-8" />
-        <title>Rishabh's musings</title>
+        <title>Opsworks stack automation using Jenkins and AWS Boto</title>
         <link rel="stylesheet" href="/theme/css/main.css" />
 
         <!--[if IE]>
@@ -14,14 +14,19 @@
         <header id="banner" class="body">
                 <h1><a href="/">Rishabh's musings </a></h1>
                 <nav><ul>
-                    <li><a href="/category/devnotes.html">devnotes</a></li>
+                    <li class="active"><a href="/category/devnotes.html">devnotes</a></li>
                     <li><a href="/category/misc.html">misc</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/opsworks-boto-jenkins-automation.html" rel="bookmark"
+           title="Permalink to Opsworks stack automation using Jenkins and AWS Boto">Opsworks stack automation using Jenkins and AWS Boto</a></h1>
+    </header>
 
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="/opsworks-boto-jenkins-automation.html">Opsworks stack automation using Jenkins and AWS Boto</a></h1>
+    <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2014-07-30T08:00:00">
                 Wed 30 July 2014
@@ -32,7 +37,7 @@
         </address>
 <p>In <a href="/category/devnotes.html">devnotes</a>. </p>
 <p>tags: <a href="/tag/aws.html">aws</a><a href="/tag/python.html">python</a></p>
-</footer><!-- /.post-info --><p>At work, we've been using <a href="http://docs.aws.amazon.com/cli/latest/reference/opsworks/index.html">AWS OpsWorks</a> lately for a lof of our new infrastructure. It is a pretty neat tool to setup a deployment pipeline for your applications and allows for quiet a lot of customization (through the use of chef-solo recipes). How to use OpsWorks is out of the scope of this blog post. What I did want to talk about however, was how to use <a href="http://jenkins-ci.org/">Jenkins</a> and <a href="http://aws.amazon.com/sdkforpython/">Boto</a> to automate instance creation/deployment. The use case here is that not everyone has direct access to the AWS console or has keys setup to issue commands via the CLI. We still need to allow these devs to be able to deploy their code (be it a specific branch or simply the master branch) to an instance resembling production and ensure that things work correctly (and down the road, run automation tests).</p>
+</footer><!-- /.post-info -->      <p>At work, we've been using <a href="http://docs.aws.amazon.com/cli/latest/reference/opsworks/index.html">AWS OpsWorks</a> lately for a lof of our new infrastructure. It is a pretty neat tool to setup a deployment pipeline for your applications and allows for quiet a lot of customization (through the use of chef-solo recipes). How to use OpsWorks is out of the scope of this blog post. What I did want to talk about however, was how to use <a href="http://jenkins-ci.org/">Jenkins</a> and <a href="http://aws.amazon.com/sdkforpython/">Boto</a> to automate instance creation/deployment. The use case here is that not everyone has direct access to the AWS console or has keys setup to issue commands via the CLI. We still need to allow these devs to be able to deploy their code (be it a specific branch or simply the master branch) to an instance resembling production and ensure that things work correctly (and down the road, run automation tests).</p>
 <p>Luckliy, with the help of Boto and the Python script plugin for Jenkins, this is relatively easy. You obviously need to have a Jenkins server running along with the Python script plugin installed. Additionally, you need to install the boto library (I installed it globally) - usually via pip (<code>sudo pip install boto</code>).</p>
 <p>Once these requirements are met, make the required modifications to the script below, add a build step to execute a python script and voila.</p>
 <p>The process this script follows is documented inline, but the gist is that we do deployments by creating new instances and deleting old ones instead of running the <code>deploy</code> command on an existing instance. This does take longer but I feel it's cleaner than deploying multiple times to the same instance.</p>
@@ -119,83 +124,11 @@
 </pre></div>
 
 
-<p>Once this script is in place, you should also check the 'This build is parametrized' checkbox and select a <code>String Parameter</code> with the name <code>Branch</code> and default value with <code>master</code>. Save the job - you should now be able to click the <code>Build with parameters</code> option presented by Jenkins, optionally change the branch and then run the job. If things go well, Jenkins should give you the <em>PrivateDns</em> URL for the instance.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+<p>Once this script is in place, you should also check the 'This build is parametrized' checkbox and select a <code>String Parameter</code> with the name <code>Branch</code> and default value with <code>master</code>. Save the job - you should now be able to click the <code>Build with parameters</code> option presented by Jenkins, optionally change the branch and then run the job. If things go well, Jenkins should give you the <em>PrivateDns</em> URL for the instance.</p>
+    </div><!-- /.entry-content -->
 
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/dockerfile-oracle-java-maven.html" rel="bookmark"
-                           title="Permalink to A quick Dockerfile to install Oracle's Java7 and Maven.">A quick Dockerfile to install Oracle's Java7 and Maven.</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2014-04-04T13:30:00">
-                Fri 04 April 2014
-        </abbr>
-
-        <address class="vcard author">
-                By <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>. </p>
-<p>tags: <a href="/tag/docker.html">docker</a><a href="/tag/java.html">java</a></p>
-</footer><!-- /.post-info -->                <p>A quick Dockerfile to install Oracle's Java7 and Maven.</p>
-                <a class="readmore" href="/dockerfile-oracle-java-maven.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/pelica-dropbox-github-blog.html" rel="bookmark"
-                           title="Permalink to Setting up a Pelican blog using Dropbox and Github Pages">Setting up a Pelican blog using Dropbox and Github Pages</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2014-03-30T08:30:00">
-                Sun 30 March 2014
-        </abbr>
-
-        <address class="vcard author">
-                By <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>. </p>
-<p>tags: <a href="/tag/pelican.html">pelican</a><a href="/tag/github.html">github</a></p>
-</footer><!-- /.post-info -->                <p>How I went about setting up my Pelican powered blog with the help of Dropbox and Github pages.</p>
-                <a class="readmore" href="/pelica-dropbox-github-blog.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/hello-world.html" rel="bookmark"
-                           title="Permalink to Hello World">Hello World</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2014-03-29T10:40:00">
-                Sat 29 March 2014
-        </abbr>
-
-        <address class="vcard author">
-                By <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/misc.html">misc</a>. </p>
-
-</footer><!-- /.post-info -->                <p>New blog (yet again)</p>
-                <a class="readmore" href="/hello-world.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-            </ol><!-- /#posts-list -->
-<p class="paginator">
-    Page 1 / 1
-</p>
-            </section><!-- /#content -->
+  </article>
+</section>
         <section id="extras" class="body">
                 <div class="social">
                         <h2>social</h2>

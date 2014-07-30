@@ -21,7 +21,118 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="/dockerfile-oracle-java-maven.html">A quick Dockerfile to install Oracle's Java7 and Maven.</a></h1>
+                    <h1 class="entry-title"><a href="/opsworks-boto-jenkins-automation.html">Opsworks stack automation using Jenkins and AWS Boto</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2014-07-30T08:00:00">
+                Wed 30 July 2014
+        </abbr>
+
+        <address class="vcard author">
+                By <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+        </address>
+<p>In <a href="/category/devnotes.html">devnotes</a>. </p>
+<p>tags: <a href="/tag/aws.html">aws</a><a href="/tag/python.html">python</a></p>
+</footer><!-- /.post-info --><p>At work, we've been using <a href="http://docs.aws.amazon.com/cli/latest/reference/opsworks/index.html">AWS OpsWorks</a> lately for a lof of our new infrastructure. It is a pretty neat tool to setup a deployment pipeline for your applications and allows for quiet a lot of customization (through the use of chef-solo recipes). How to use OpsWorks is out of the scope of this blog post. What I did want to talk about however, was how to use <a href="http://jenkins-ci.org/">Jenkins</a> and <a href="http://aws.amazon.com/sdkforpython/">Boto</a> to automate instance creation/deployment. The use case here is that not everyone has direct access to the AWS console or has keys setup to issue commands via the CLI. We still need to allow these devs to be able to deploy their code (be it a specific branch or simply the master branch) to an instance resembling production and ensure that things work correctly (and down the road, run automation tests).</p>
+<p>Luckliy, with the help of Boto and the Python script plugin for Jenkins, this is relatively easy. You obviously need to have a Jenkins server running along with the Python script plugin installed. Additionally, you need to install the boto library (I installed it globally) - usually via pip (<code>sudo pip install boto</code>).</p>
+<p>Once these requirements are met, make the required modifications to the script below, add a build step to execute a python script and voila.</p>
+<p>The process this script follows is documented inline, but the gist is that we do deployments by creating new instances and deleting old ones instead of running the <code>deploy</code> command on an existing instance. This does take longer but I feel it's cleaner than deploying multiple times to the same instance.</p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">boto</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c"># Fill in the various required fields below (should be self explanatory)</span>
+<span class="n">AWS_ACCESS_KEY</span> <span class="o">=</span> <span class="s">&quot;FILL_ME&quot;</span>
+<span class="n">AWS_SECRET_KEY</span> <span class="o">=</span> <span class="s">&quot;FILL_ME&quot;</span>
+<span class="n">STACK_ID</span> <span class="o">=</span> <span class="s">&quot;FILL_ME&quot;</span>
+<span class="n">APP_ID</span> <span class="o">=</span> <span class="s">&quot;FILL_ME&quot;</span>
+<span class="n">LAYER_IDS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;FILL_ME&quot;</span><span class="p">]</span>
+<span class="n">INSTANCE_TYPE</span> <span class="o">=</span> <span class="s">&quot;m1.medium&quot;</span>
+
+<span class="c"># We allow users to build &#39;parametrized&#39; builds - they can specify the branch they want to use</span>
+<span class="c"># to build the new instance. The APP is updated to use that branch and once the new instance is created,</span>
+<span class="c"># it&#39;s updated again to rever to master (this piece is hardcoded)</span>
+
+<span class="c"># This is the format OpsWorks expects (they should clean it up and make the dict be more pythonic)</span>
+<span class="n">APP_SOURCE</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;Url&quot;</span><span class="p">:</span> <span class="s">&quot;FILL_ME&quot;</span><span class="p">,</span> <span class="s">&quot;Type&quot;</span><span class="p">:</span> <span class="s">&quot;git&quot;</span><span class="p">,</span> <span class="s">&quot;Revision&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;BRANCH&quot;</span><span class="p">)}</span>
+<span class="n">APP_SOURCE_MASTER</span> <span class="o">=</span> <span class="n">APP_SOURCE</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">APP_SOURCE_MASTER</span><span class="p">[</span><span class="s">&#39;Revision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;master&quot;</span> <span class="c"># default branch should always be master</span>
+
+<span class="n">opsworks</span> <span class="o">=</span> <span class="n">boto</span><span class="o">.</span><span class="n">connect_opsworks</span><span class="p">(</span><span class="n">aws_access_key_id</span><span class="o">=</span><span class="n">AWS_ACCESS_KEY</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="n">AWS_SECRET_KEY</span><span class="p">)</span>
+
+<span class="c"># Print out the instances running presently</span>
+<span class="n">online_instances</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s">&quot;Hostname: </span><span class="si">%s</span><span class="s">, DNS: </span><span class="si">%s</span><span class="s">, Status: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s">&#39;Hostname&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s">&#39;PrivateDns&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s">&#39;PrivateDns&#39;</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">else</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]),</span> <span class="n">opsworks</span><span class="o">.</span><span class="n">describe_instances</span><span class="p">(</span><span class="n">stack_id</span><span class="o">=</span><span class="n">STACK_ID</span><span class="p">)[</span><span class="s">&#39;Instances&#39;</span><span class="p">])</span>
+
+<span class="k">print</span> <span class="s">&quot;Online Instances: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">online_instances</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&quot;Deploying branch: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">APP_SOURCE</span><span class="p">[</span><span class="s">&quot;Revision&quot;</span><span class="p">]</span>
+
+<span class="c"># Update the app to use our specific branch</span>
+<span class="n">opsworks</span><span class="o">.</span><span class="n">update_app</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="n">APP_ID</span><span class="p">,</span> <span class="n">app_source</span><span class="o">=</span><span class="n">APP_SOURCE</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&quot;Adding another instance&quot;</span>
+
+<span class="c"># Creat the instance (we&#39;ll later have to start it too)</span>
+<span class="n">new_inst</span> <span class="o">=</span> <span class="n">opsworks</span><span class="o">.</span><span class="n">create_instance</span><span class="p">(</span><span class="n">stack_id</span><span class="o">=</span><span class="n">STACK_ID</span><span class="p">,</span> <span class="n">layer_ids</span><span class="o">=</span><span class="n">LAYER_IDS</span><span class="p">,</span> <span class="n">instance_type</span><span class="o">=</span><span class="n">INSTANCE_TYPE</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&quot;New Instance ID: </span><span class="si">%s</span><span class="s">. Starting it now&quot;</span> <span class="o">%</span> <span class="n">new_inst</span><span class="p">[</span><span class="s">&quot;InstanceId&quot;</span><span class="p">]</span>
+
+<span class="c"># As promised, start the instance.</span>
+<span class="n">opsworks</span><span class="o">.</span><span class="n">start_instance</span><span class="p">(</span><span class="n">new_inst</span><span class="p">[</span><span class="s">&quot;InstanceId&quot;</span><span class="p">])</span>
+
+<span class="k">print</span> <span class="s">&quot;Start command sent. Checking Status now&quot;</span>
+
+<span class="c"># We need to start &#39;describing&#39; the instance to check it&#39;s status. Depending on the type of instance created</span>
+<span class="c"># it can take a while to come up (m1.medium usually take 15-20 mins for me - anecdotal evidence though).</span>
+<span class="n">inst</span> <span class="o">=</span> <span class="n">opsworks</span><span class="o">.</span><span class="n">describe_instances</span><span class="p">(</span><span class="n">instance_ids</span><span class="o">=</span><span class="p">[</span><span class="n">new_inst</span><span class="p">[</span><span class="s">&quot;InstanceId&quot;</span><span class="p">]])[</span><span class="s">&#39;Instances&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">print</span> <span class="s">&quot;New Instance Hostname: </span><span class="si">%s</span><span class="s">, Status: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inst</span><span class="p">[</span><span class="s">&#39;Hostname&#39;</span><span class="p">],</span> <span class="n">inst</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">])</span>
+
+<span class="c"># Wait until the instance is either up or the setup failed.</span>
+<span class="k">while</span> <span class="n">inst</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;online&quot;</span><span class="p">,</span> <span class="s">&quot;setup_failed&quot;</span><span class="p">]:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="n">inst</span> <span class="o">=</span> <span class="n">opsworks</span><span class="o">.</span><span class="n">describe_instances</span><span class="p">(</span><span class="n">instance_ids</span><span class="o">=</span><span class="p">[</span><span class="n">new_inst</span><span class="p">[</span><span class="s">&quot;InstanceId&quot;</span><span class="p">]])[</span><span class="s">&#39;Instances&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">print</span> <span class="s">&quot;Status is: </span><span class="si">%s</span><span class="s">. Sleeping for 30 seconds&quot;</span> <span class="o">%</span> <span class="n">inst</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="c"># Use this to specify (to Jenkins) whether the job failed or not.</span>
+<span class="n">EXIT_CODE</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">if</span> <span class="n">inst</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;online&quot;</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;New instance started. DNS: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">inst</span><span class="p">[</span><span class="s">&#39;PrivateDns&#39;</span><span class="p">]</span>
+<span class="k">elif</span> <span class="n">inst</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;setup_failed&quot;</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;Error creating instance. See the Opsworks console for more information.&quot;</span>
+    <span class="n">EXIT_CODE</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c"># Get the log file URL to show</span>
+<span class="n">log_file</span> <span class="o">=</span> <span class="n">opsworks</span><span class="o">.</span><span class="n">describe_commands</span><span class="p">(</span><span class="n">instance_id</span><span class="o">=</span><span class="n">inst</span><span class="p">[</span><span class="s">&#39;InstanceId&#39;</span><span class="p">])[</span><span class="s">&#39;Commands&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;LogUrl&#39;</span><span class="p">]</span>
+
+<span class="k">print</span> <span class="s">&quot;Log file for this instance is </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">log_file</span>
+
+<span class="k">print</span> <span class="s">&quot;Reverting the revision back to </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">APP_SOURCE_MASTER</span><span class="p">[</span><span class="s">&quot;Revision&quot;</span><span class="p">]</span>
+
+<span class="n">opsworks</span><span class="o">.</span><span class="n">update_app</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="n">APP_ID</span><span class="p">,</span> <span class="n">app_source</span><span class="o">=</span><span class="n">APP_SOURCE_MASTER</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="s">&quot;All Done&quot;</span>
+
+<span class="c"># Exit with either success (0) or failure (1).</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">EXIT_CODE</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Once this script is in place, you should also check the 'This build is parametrized' checkbox and select a <code>String Parameter</code> with the name <code>Branch</code> and default value with <code>master</code>. Save the job - you should now be able to click the <code>Build with parameters</code> option presented by Jenkins, optionally change the branch and then run the job. If things go well, Jenkins should give you the <em>PrivateDns</em> URL for the instance.</p>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="/dockerfile-oracle-java-maven.html" rel="bookmark"
+                           title="Permalink to A quick Dockerfile to install Oracle's Java7 and Maven.">A quick Dockerfile to install Oracle's Java7 and Maven.</a></h1>
+                </header>
+
+                <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2014-04-04T13:30:00">
                 Fri 04 April 2014
@@ -32,22 +143,10 @@
         </address>
 <p>In <a href="/category/devnotes.html">devnotes</a>. </p>
 <p>tags: <a href="/tag/docker.html">docker</a><a href="/tag/java.html">java</a></p>
-</footer><!-- /.post-info --><p>Here's a quick Dockerfile to install Oracle's Java 7 and Maven.</p>
-<div class="highlight"><pre>FROM dockerfile/java
-
-<span class="c"># Install maven</span>
-RUN apt-get update
-RUN apt-get install -y maven
-</pre></div>
-
-
-<p>This uses the the <a href="https://index.docker.io/u/dockerfile/java/">trusted java build</a> base image to install Java and then just installs the default maven version delivered with Ubuntu 12.04 (which seems to be <strong>3.0.4-2</strong>).</p>
-<p>Anyways, real simple Dockerfile - but it helps out when building Java code.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+</footer><!-- /.post-info -->                <p>A quick Dockerfile to install Oracle's Java7 and Maven.</p>
+                <a class="readmore" href="/dockerfile-oracle-java-maven.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>
