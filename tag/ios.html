@@ -41,9 +41,9 @@ to get a light setup to be controlled by the GPIO pins and the relay (<a href="h
 In the end, the whole setup ends up looking something like the below (I'll go into more detail about this setup in a later post perhaps):</p>
 <p><img alt="RPI Setup" src="http://i.imgur.com/pt6aft9.jpg" /></p>
 <p>With the wires all setup, the next step is to actual use the setup to be able to remotely turn on or off a light. This is where the <a href="https://github.com/rmanocha/rpi_lights/blob/master/flask_light.py">flask
-app</a> I wrote comes in. As you might see, the GPIO pins being used are #9 and</p>
-<h1>2. These two represent the two ends of the relay board (in my setup anyways). Running this as a webserver on the raspberry pi (you need to run as root</h1>
-<p>otherwise the rpi is unable to access the GPIO pins) allows me to then make a simple GET request to <code>/toggle</code> for one light and <code>/toggle_big</code> for the other.</p>
+app</a> I wrote comes in. As you might see, the GPIO pins being used are #9 and #2. 
+These two represent the two ends of the relay board (in my setup anyways). Running this as a webserver on the raspberry pi (you need to run as root
+otherwise the rpi is unable to access the GPIO pins) allows me to then make a simple GET request to <code>/toggle</code> for one light and <code>/toggle_big</code> for the other.</p>
 <p>Now, while I had an Android device, hitting these endpoints was easy. I simply setup a Tasker widget on my home screen that when touched would make a GET request
 to one of these two endpoints which would, in turn, simply toggle the light on or off. However, now that I use an iOS device, Tasker (or any other widgets) are not an option
 anymore (which sucks, IMO). This was a good opportunity to get my feet wet in the iOS development world. There are a bazillion tutorials online on how to get started, so I won't
