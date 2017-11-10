@@ -6,7 +6,7 @@
         <link rel="stylesheet" href="/theme/css/main.css" />
 
         <!--[if IE]>
-            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+            <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
 </head>
 
@@ -21,44 +21,81 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="/rpi-ios-home-automation.html">Experiments with RaspberryPi and iOS for home automation</a></h1>
+                    <h1 class="entry-title"><a href="/aws-emr-spark-getting-started.html">Getting started with EMR + Apache Spark</a></h1>
 <footer class="post-info">
-        <abbr class="published" title="2015-11-22T08:00:00">
-                Sun 22 November 2015
+        <abbr class="published" title="2017-11-10T09:00:00-08:00">
+                Published: Fri 10 November 2017
         </abbr>
 
         <address class="vcard author">
-                By <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
         </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>. </p>
-<p>tags: <a href="/tag/raspberrypi.html">raspberrypi</a><a href="/tag/ios.html">ios</a><a href="/tag/python.html">python</a></p>
-</footer><!-- /.post-info --><p>Ever since I bought a couple of RaspberryPi's a year or so ago, I've been interested in doing some home automation with them. However, 
-I never really got down to it (for various reasons; lazy, no easy tutorial available, parts missing, life etc.) until the past couple 
-of months or so.</p>
-<p>I finally got around to buying a <a href="http://www.amazon.com/gp/product/B00C8O9KHA">relay</a> and 
-<a href="http://www.amazon.com/gp/product/B00M5WLZDW">female to female cables</a>. With these in hand, I followed a few tutorials on YouTube
-to get a light setup to be controlled by the GPIO pins and the relay (<a href="https://www.youtube.com/watch?v=WpM1aq4B8-A">some</a> <a href="https://www.youtube.com/watch?v=oaf_zQcrg7g">good</a> <a href="https://www.youtube.com/watch?v=3u45htuQeag">videos</a>).
-In the end, the whole setup ends up looking something like the below (I'll go into more detail about this setup in a later post perhaps):</p>
-<p><img alt="RPI Setup" src="http://i.imgur.com/pt6aft9.jpg" /></p>
-<p>With the wires all setup, the next step is to actual use the setup to be able to remotely turn on or off a light. This is where the <a href="https://github.com/rmanocha/rpi_lights/blob/master/flask_light.py">flask
-app</a> I wrote comes in. As you might see, the GPIO pins being used are #9 and #2. 
-These two represent the two ends of the relay board (in my setup anyways). Running this as a webserver on the raspberry pi (you need to run as root
-otherwise the rpi is unable to access the GPIO pins) allows me to then make a simple GET request to <code>/toggle</code> for one light and <code>/toggle_big</code> for the other.</p>
-<p>Now, while I had an Android device, hitting these endpoints was easy. I simply setup a Tasker widget on my home screen that when touched would make a GET request
-to one of these two endpoints which would, in turn, simply toggle the light on or off. However, now that I use an iOS device, Tasker (or any other widgets) are not an option
-anymore (which sucks, IMO). This was a good opportunity to get my feet wet in the iOS development world. There are a bazillion tutorials online on how to get started, so I won't
-go into them here. I would say that making a simple GET request via swift turned out to be a harder task than I had envisioned it to be (though I guess, python, natively makes it just
-as hard). At the end of the day, <a href="https://github.com/rmanocha/RPiLightApp/blob/master/RPiLight/ViewController.swift">this is what I came up with</a>. Essentially a viewport with two buttons; each
-one simply toggles the specific light on or off. As you can see from the image below, I have not figured out how to center the buttons in the view; not such a big deal for me for now.</p>
-<p><img alt="iOS App" src="http://i.imgur.com/8FQimr8.png" /></p>
-<p>The next step for me is to get force touch working on my iPhone 6s so that the app does not need to open up for me to be able to turn the light on or off (similar to a widget on Android devices).
-Additionally, I need to buy another relay board and a wireless dongle for the pi so that I can do the same thing for the lamps in my bedroom.</p>
-<p>So that's mostly it. This setup works well for now and gave me a good opportunity to play around with a few new and interesting technologies/languages.</p>                </article>
+<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
+<p>tags: <a href="/tag/aws.html">aws</a> <a href="/tag/emr.html">emr</a> <a href="/tag/apache-spark.html">apache-spark</a> </p>
+</footer><!-- /.post-info --><p>It's been a while since my last post. Given that I've been playing 
+around with <a href="https://spark.apache.org/">Apache Spark</a> on 
+<a href="https://aws.amazon.com/emr/">AWS EMR</a> lately, I figured I'd write 
+about it.</p>
+<p>At work, we're trying to solve a specific problem: we want to know 
+how many times has a particular user has taken a particular action over 
+a rolling window of time (ranging from seconds to hours). Further, 
+we want this data to be calculated in near real time so that actions
+can be taken based on this "aggregation" by another process while the
+user is navigating our site, as opposed to a few hours later (which 
+is what we have done so far, since we rely on our data warehouse to 
+be the source of information for the calculations). For 
+example, at LinkedIn, we'd want to know how many times has a given 
+user viewed another user's profile over the last 10 minutes. A 
+simple use case for this aggregation might be to calculate the 99'th 
+percentile of profile views over the 10 minute rolling window.</p>
+<p>I'll write a separate, and more detailed blog post about the architecural 
+choices we made and what the tradeoffs were, but for now, 
+I just wanted to list some things that I found interesting while working with 
+EMR and Spark 2.2.0 (again, more details in separate (several ?) blog posts):</p>
+<ul>
+<li>There's no easy way to load the Spark UI when running an EMR cluster. You 
+have to setup an SSH tunnel to get in, and in our case, this caused issues since 
+our VPC for the project (we have isolated VPCs so that we do not adversely impact 
+our production workloads with our 'analytics' workloads, at-least not yet) 
+won't allow us to ssh into machines in it from inside our corporate VPN (
+I don't understand why, and I don't understand VPCs in general, really).</li>
+<li>The best way to actually kick off a Spark Streaming job is to use an 
+<a href="http://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-submit-step.html">EMR Spark Step</a>. 
+These allow you to define specific actions you want EMR to take once the cluster has been bootstrapped. 
+You can also tell EMR to shutdown the cluster once all steps assigned to it have been executed.</li>
+<li>A good way to install packages your streaming job needs is to use 
+<a href="http://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-plan-bootstrap.html">Bootstrap actions</a>. For me,
+I needed <em>boto3</em> to be installed on the workers so that once my python each streaming batch was done, 
+I could send the results into a kinesis stream.</li>
+</ul>
+<p>I'll talk in more details about each one of these (and some other things) in follow up blog posts.</p>                </article>
             </aside><!-- /#featured -->
                 <section id="content" class="body">
                     <h1>Other articles</h1>
                     <hr />
                     <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="/rpi-ios-home-automation.html" rel="bookmark"
+                           title="Permalink to Experiments with RaspberryPi and iOS for home automation">Experiments with RaspberryPi and iOS for home automation</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2015-11-22T08:00:00-08:00">
+                Published: Sun 22 November 2015
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+        </address>
+<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
+<p>tags: <a href="/tag/raspberrypi.html">raspberrypi</a> <a href="/tag/ios.html">ios</a> <a href="/tag/python.html">python</a> </p>
+</footer><!-- /.post-info -->                <p>Some notes and thoughts on how to go about doing home automation using a RaspberryPi followed up by an iOS app to use the features.</p>
+                <a class="readmore" href="/rpi-ios-home-automation.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>
@@ -68,15 +105,15 @@ Additionally, I need to buy another relay board and a wireless dongle for the pi
 
                 <div class="entry-content">
 <footer class="post-info">
-        <abbr class="published" title="2014-07-30T08:00:00">
-                Wed 30 July 2014
+        <abbr class="published" title="2014-07-30T08:00:00-07:00">
+                Published: Wed 30 July 2014
         </abbr>
 
         <address class="vcard author">
-                By <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
         </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>. </p>
-<p>tags: <a href="/tag/aws.html">aws</a><a href="/tag/python.html">python</a></p>
+<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
+<p>tags: <a href="/tag/aws.html">aws</a> <a href="/tag/python.html">python</a> </p>
 </footer><!-- /.post-info -->                <p>A python script that allows us to automate the creation of new instances within an Opsworks stack via a Jenkins job.</p>
                 <a class="readmore" href="/opsworks-boto-jenkins-automation.html">read more</a>
                 </div><!-- /.entry-content -->
@@ -90,15 +127,15 @@ Additionally, I need to buy another relay board and a wireless dongle for the pi
 
                 <div class="entry-content">
 <footer class="post-info">
-        <abbr class="published" title="2014-04-04T13:30:00">
-                Fri 04 April 2014
+        <abbr class="published" title="2014-04-04T13:30:00-07:00">
+                Published: Fri 04 April 2014
         </abbr>
 
         <address class="vcard author">
-                By <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
         </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>. </p>
-<p>tags: <a href="/tag/docker.html">docker</a><a href="/tag/java.html">java</a></p>
+<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
+<p>tags: <a href="/tag/docker.html">docker</a> <a href="/tag/java.html">java</a> </p>
 </footer><!-- /.post-info -->                <p>A quick Dockerfile to install Oracle's Java7 and Maven.</p>
                 <a class="readmore" href="/dockerfile-oracle-java-maven.html">read more</a>
                 </div><!-- /.entry-content -->
@@ -112,24 +149,21 @@ Additionally, I need to buy another relay board and a wireless dongle for the pi
 
                 <div class="entry-content">
 <footer class="post-info">
-        <abbr class="published" title="2014-03-30T08:30:00">
-                Sun 30 March 2014
+        <abbr class="published" title="2014-03-30T08:30:00-07:00">
+                Published: Sun 30 March 2014
         </abbr>
 
         <address class="vcard author">
-                By <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
         </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>. </p>
-<p>tags: <a href="/tag/pelican.html">pelican</a><a href="/tag/github.html">github</a></p>
+<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
+<p>tags: <a href="/tag/pelican.html">pelican</a> <a href="/tag/github.html">github</a> </p>
 </footer><!-- /.post-info -->                <p>How I went about setting up my Pelican powered blog with the help of Dropbox and Github pages.</p>
                 <a class="readmore" href="/pelica-dropbox-github-blog.html">read more</a>
                 </div><!-- /.entry-content -->
             </article></li>
-            </ol><!-- /#posts-list -->
-<p class="paginator">
-    Page 1 / 1
-</p>
-            </section><!-- /#content -->
+                </ol><!-- /#posts-list -->
+                </section><!-- /#content -->
         <section id="extras" class="body">
                 <div class="social">
                         <h2>social</h2>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
         <meta charset="utf-8" />
-        <title>Rishabh's musings - aws</title>
+        <title>Getting started with EMR + Apache Spark</title>
         <link rel="stylesheet" href="/theme/css/main.css" />
 
         <!--[if IE]>
@@ -14,14 +14,19 @@
         <header id="banner" class="body">
                 <h1><a href="/">Rishabh's musings </a></h1>
                 <nav><ul>
-                    <li><a href="/category/devnotes.html">devnotes</a></li>
+                    <li class="active"><a href="/category/devnotes.html">devnotes</a></li>
                     <li><a href="/category/misc.html">misc</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/drafts/aws-emr-spark-getting-started.html" rel="bookmark"
+           title="Permalink to Getting started with EMR + Apache Spark">Getting started with EMR + Apache Spark</a></h1>
+    </header>
 
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="/aws-emr-spark-getting-started.html">Getting started with EMR + Apache Spark</a></h1>
+    <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2017-11-10T09:00:00-08:00">
                 Published: Fri 10 November 2017
@@ -32,7 +37,7 @@
         </address>
 <p>In <a href="/category/devnotes.html">devnotes</a>.</p>
 <p>tags: <a href="/tag/aws.html">aws</a> <a href="/tag/emr.html">emr</a> <a href="/tag/apache-spark.html">apache-spark</a> </p>
-</footer><!-- /.post-info --><p>It's been a while since my last post. Given that I've been playing 
+</footer><!-- /.post-info -->      <p>It's been a while since my last post. Given that I've been playing 
 around with <a href="https://spark.apache.org/">Apache Spark</a> on 
 <a href="https://aws.amazon.com/emr/">AWS EMR</a> lately, I figured I'd write 
 about it.</p>
@@ -68,36 +73,11 @@ You can also tell EMR to shutdown the cluster once all steps assigned to it have
 I needed <em>boto3</em> to be installed on the workers so that once my python each streaming batch was done, 
 I could send the results into a kinesis stream.</li>
 </ul>
-<p>I'll talk in more details about each one of these (and some other things) in follow up blog posts.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+<p>I'll talk in more details about each one of these (and some other things) in follow up blog posts.</p>
+    </div><!-- /.entry-content -->
 
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/opsworks-boto-jenkins-automation.html" rel="bookmark"
-                           title="Permalink to Opsworks stack automation using Jenkins and AWS Boto">Opsworks stack automation using Jenkins and AWS Boto</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2014-07-30T08:00:00-07:00">
-                Published: Wed 30 July 2014
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
-<p>tags: <a href="/tag/aws.html">aws</a> <a href="/tag/python.html">python</a> </p>
-</footer><!-- /.post-info -->                <p>A python script that allows us to automate the creation of new instances within an Opsworks stack via a Jenkins job.</p>
-                <a class="readmore" href="/opsworks-boto-jenkins-automation.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-                </ol><!-- /#posts-list -->
-                </section><!-- /#content -->
+  </article>
+</section>
         <section id="extras" class="body">
                 <div class="social">
                         <h2>social</h2>

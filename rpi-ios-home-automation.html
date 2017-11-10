@@ -6,7 +6,7 @@
         <link rel="stylesheet" href="/theme/css/main.css" />
 
         <!--[if IE]>
-            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+            <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
 </head>
 
@@ -28,15 +28,15 @@
 
     <div class="entry-content">
 <footer class="post-info">
-        <abbr class="published" title="2015-11-22T08:00:00">
-                Sun 22 November 2015
+        <abbr class="published" title="2015-11-22T08:00:00-08:00">
+                Published: Sun 22 November 2015
         </abbr>
 
         <address class="vcard author">
-                By <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
         </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>. </p>
-<p>tags: <a href="/tag/raspberrypi.html">raspberrypi</a><a href="/tag/ios.html">ios</a><a href="/tag/python.html">python</a></p>
+<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
+<p>tags: <a href="/tag/raspberrypi.html">raspberrypi</a> <a href="/tag/ios.html">ios</a> <a href="/tag/python.html">python</a> </p>
 </footer><!-- /.post-info -->      <p>Ever since I bought a couple of RaspberryPi's a year or so ago, I've been interested in doing some home automation with them. However, 
 I never really got down to it (for various reasons; lazy, no easy tutorial available, parts missing, life etc.) until the past couple 
 of months or so.</p>
@@ -44,7 +44,7 @@ of months or so.</p>
 <a href="http://www.amazon.com/gp/product/B00M5WLZDW">female to female cables</a>. With these in hand, I followed a few tutorials on YouTube
 to get a light setup to be controlled by the GPIO pins and the relay (<a href="https://www.youtube.com/watch?v=WpM1aq4B8-A">some</a> <a href="https://www.youtube.com/watch?v=oaf_zQcrg7g">good</a> <a href="https://www.youtube.com/watch?v=3u45htuQeag">videos</a>).
 In the end, the whole setup ends up looking something like the below (I'll go into more detail about this setup in a later post perhaps):</p>
-<p><img alt="RPI Setup" src="http://i.imgur.com/pt6aft9.jpg" /></p>
+<p><img alt="RPI Setup" src="http://i.imgur.com/pt6aft9.jpg"></p>
 <p>With the wires all setup, the next step is to actual use the setup to be able to remotely turn on or off a light. This is where the <a href="https://github.com/rmanocha/rpi_lights/blob/master/flask_light.py">flask
 app</a> I wrote comes in. As you might see, the GPIO pins being used are #9 and #2. 
 These two represent the two ends of the relay board (in my setup anyways). Running this as a webserver on the raspberry pi (you need to run as root
@@ -55,7 +55,7 @@ anymore (which sucks, IMO). This was a good opportunity to get my feet wet in th
 go into them here. I would say that making a simple GET request via swift turned out to be a harder task than I had envisioned it to be (though I guess, python, natively makes it just
 as hard). At the end of the day, <a href="https://github.com/rmanocha/RPiLightApp/blob/master/RPiLight/ViewController.swift">this is what I came up with</a>. Essentially a viewport with two buttons; each
 one simply toggles the specific light on or off. As you can see from the image below, I have not figured out how to center the buttons in the view; not such a big deal for me for now.</p>
-<p><img alt="iOS App" src="http://i.imgur.com/8FQimr8.png" /></p>
+<p><img alt="iOS App" src="http://i.imgur.com/8FQimr8.png"></p>
 <p>The next step for me is to get force touch working on my iPhone 6s so that the app does not need to open up for me to be able to turn the light on or off (similar to a widget on Android devices).
 Additionally, I need to buy another relay board and a wireless dongle for the pi so that I can do the same thing for the lamps in my bedroom.</p>
 <p>So that's mostly it. This setup works well for now and gave me a good opportunity to play around with a few new and interesting technologies/languages.</p>

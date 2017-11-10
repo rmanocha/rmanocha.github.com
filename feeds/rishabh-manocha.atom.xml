@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Rishabh's musings - Rishabh Manocha</title><link href="/" rel="alternate"></link><link href="/feeds/rishabh-manocha.atom.xml" rel="self"></link><id>/</id><updated>2017-11-10T09:00:00-08:00</updated><entry><title>Getting started with EMR + Apache Spark</title><link href="/aws-emr-spark-getting-started.html" rel="alternate"></link><published>2017-11-10T09:00:00-08:00</published><updated>2017-11-10T09:00:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2017-11-10:/aws-emr-spark-getting-started.html</id><summary type="html">&lt;p&gt;Some basic things to know about getting started with Apache Spark on AWS EMR&lt;/p&gt;</summary><content type="html">&lt;p&gt;It's been a while since my last post. Given that I've been playing 
+around with &lt;a href="https://spark.apache.org/"&gt;Apache Spark&lt;/a&gt; on 
+&lt;a href="https://aws.amazon.com/emr/"&gt;AWS EMR&lt;/a&gt; lately, I figured I'd write 
+about it.&lt;/p&gt;
+&lt;p&gt;At work, we're trying to solve a specific problem: we want to know 
+how many times has a particular user has taken a particular action over 
+a rolling window of time (ranging from seconds to hours). Further, 
+we want this data to be calculated in near real time so that actions
+can be taken based on this "aggregation" by another process while the
+user is navigating our site, as opposed to a few hours later (which 
+is what we have done so far, since we rely on our data warehouse to 
+be the source of information for the calculations). For 
+example, at LinkedIn, we'd want to know how many times has a given 
+user viewed another user's profile over the last 10 minutes. A 
+simple use case for this aggregation might be to calculate the 99'th 
+percentile of profile views over the 10 minute rolling window.&lt;/p&gt;
+&lt;p&gt;I'll write a separate, and more detailed blog post about the architecural 
+choices we made and what the tradeoffs were, but for now, 
+I just wanted to list some things that I found interesting while working with 
+EMR and Spark 2.2.0 (again, more details in separate (several ?) blog posts):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;There's no easy way to load the Spark UI when running an EMR cluster. You 
+have to setup an SSH tunnel to get in, and in our case, this caused issues since 
+our VPC for the project (we have isolated VPCs so that we do not adversely impact 
+our production workloads with our 'analytics' workloads, at-least not yet) 
+won't allow us to ssh into machines in it from inside our corporate VPN (
+I don't understand why, and I don't understand VPCs in general, really).&lt;/li&gt;
+&lt;li&gt;The best way to actually kick off a Spark Streaming job is to use an 
+&lt;a href="http://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-submit-step.html"&gt;EMR Spark Step&lt;/a&gt;. 
+These allow you to define specific actions you want EMR to take once the cluster has been bootstrapped. 
+You can also tell EMR to shutdown the cluster once all steps assigned to it have been executed.&lt;/li&gt;
+&lt;li&gt;A good way to install packages your streaming job needs is to use 
+&lt;a href="http://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-plan-bootstrap.html"&gt;Bootstrap actions&lt;/a&gt;. For me,
+I needed &lt;em&gt;boto3&lt;/em&gt; to be installed on the workers so that once my python each streaming batch was done, 
+I could send the results into a kinesis stream.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I'll talk in more details about each one of these (and some other things) in follow up blog posts.&lt;/p&gt;</content><category term="aws"></category><category term="emr"></category><category term="apache-spark"></category></entry><entry><title>Experiments with RaspberryPi and iOS for home automation</title><link href="/rpi-ios-home-automation.html" rel="alternate"></link><published>2015-11-22T08:00:00-08:00</published><updated>2015-11-22T08:00:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2015-11-22:/rpi-ios-home-automation.html</id><summary type="html">&lt;p&gt;Some notes and thoughts on how to go about doing home automation using a RaspberryPi followed up by an iOS app to use the features.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Ever since I bought a couple of RaspberryPi's a year or so ago, I've been interested in doing some home automation with them. However, 
+I never really got down to it (for various reasons; lazy, no easy tutorial available, parts missing, life etc.) until the past couple 
+of months or so.&lt;/p&gt;
+&lt;p&gt;I finally got around to buying a &lt;a href="http://www.amazon.com/gp/product/B00C8O9KHA"&gt;relay&lt;/a&gt; and 
+&lt;a href="http://www.amazon.com/gp/product/B00M5WLZDW"&gt;female to female cables&lt;/a&gt;. With these in hand, I followed a few tutorials on YouTube
+to get a light setup to be controlled by the GPIO pins and the relay (&lt;a href="https://www.youtube.com/watch?v=WpM1aq4B8-A"&gt;some&lt;/a&gt; &lt;a href="https://www.youtube.com/watch?v=oaf_zQcrg7g"&gt;good&lt;/a&gt; &lt;a href="https://www.youtube.com/watch?v=3u45htuQeag"&gt;videos&lt;/a&gt;).
+In the end, the whole setup ends up looking something like the below (I'll go into more detail about this setup in a later post perhaps):&lt;/p&gt;
+&lt;p&gt;&lt;img alt="RPI Setup" src="http://i.imgur.com/pt6aft9.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;With the wires all setup, the next step is to actual use the setup to be able to remotely turn on or off a light. This is where the &lt;a href="https://github.com/rmanocha/rpi_lights/blob/master/flask_light.py"&gt;flask
+app&lt;/a&gt; I wrote comes in. As you might see, the GPIO pins being used are #9 and #2. 
+These two represent the two ends of the relay board (in my setup anyways). Running this as a webserver on the raspberry pi (you need to run as root
+otherwise the rpi is unable to access the GPIO pins) allows me to then make a simple GET request to &lt;code&gt;/toggle&lt;/code&gt; for one light and &lt;code&gt;/toggle_big&lt;/code&gt; for the other.&lt;/p&gt;
+&lt;p&gt;Now, while I had an Android device, hitting these endpoints was easy. I simply setup a Tasker widget on my home screen that when touched would make a GET request
+to one of these two endpoints which would, in turn, simply toggle the light on or off. However, now that I use an iOS device, Tasker (or any other widgets) are not an option
+anymore (which sucks, IMO). This was a good opportunity to get my feet wet in the iOS development world. There are a bazillion tutorials online on how to get started, so I won't
+go into them here. I would say that making a simple GET request via swift turned out to be a harder task than I had envisioned it to be (though I guess, python, natively makes it just
+as hard). At the end of the day, &lt;a href="https://github.com/rmanocha/RPiLightApp/blob/master/RPiLight/ViewController.swift"&gt;this is what I came up with&lt;/a&gt;. Essentially a viewport with two buttons; each
+one simply toggles the specific light on or off. As you can see from the image below, I have not figured out how to center the buttons in the view; not such a big deal for me for now.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="iOS App" src="http://i.imgur.com/8FQimr8.png"&gt;&lt;/p&gt;
+&lt;p&gt;The next step for me is to get force touch working on my iPhone 6s so that the app does not need to open up for me to be able to turn the light on or off (similar to a widget on Android devices).
+Additionally, I need to buy another relay board and a wireless dongle for the pi so that I can do the same thing for the lamps in my bedroom.&lt;/p&gt;
+&lt;p&gt;So that's mostly it. This setup works well for now and gave me a good opportunity to play around with a few new and interesting technologies/languages.&lt;/p&gt;</content><category term="raspberrypi"></category><category term="ios"></category><category term="python"></category></entry><entry><title>Opsworks stack automation using Jenkins and AWS Boto</title><link href="/opsworks-boto-jenkins-automation.html" rel="alternate"></link><published>2014-07-30T08:00:00-07:00</published><updated>2014-07-30T08:00:00-07:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2014-07-30:/opsworks-boto-jenkins-automation.html</id><summary type="html">&lt;p&gt;A python script that allows us to automate the creation of new instances within an Opsworks stack via a Jenkins job.&lt;/p&gt;</summary><content type="html">&lt;p&gt;At work, we've been using &lt;a href="http://docs.aws.amazon.com/cli/latest/reference/opsworks/index.html"&gt;AWS OpsWorks&lt;/a&gt; lately for a lof of our new infrastructure. It is a pretty neat tool to setup a deployment pipeline for your applications and allows for quiet a lot of customization (through the use of chef-solo recipes). How to use OpsWorks is out of the scope of this blog post. What I did want to talk about however, was how to use &lt;a href="http://jenkins-ci.org/"&gt;Jenkins&lt;/a&gt; and &lt;a href="http://aws.amazon.com/sdkforpython/"&gt;Boto&lt;/a&gt; to automate instance creation/deployment. The use case here is that not everyone has direct access to the AWS console or has keys setup to issue commands via the CLI. We still need to allow these devs to be able to deploy their code (be it a specific branch or simply the master branch) to an instance resembling production and ensure that things work correctly (and down the road, run automation tests).&lt;/p&gt;
+&lt;p&gt;Luckliy, with the help of Boto and the Python script plugin for Jenkins, this is relatively easy. You obviously need to have a Jenkins server running along with the Python script plugin installed. Additionally, you need to install the boto library (I installed it globally) - usually via pip (&lt;code&gt;sudo pip install boto&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;Once these requirements are met, make the required modifications to the script below, add a build step to execute a python script and voila.&lt;/p&gt;
+&lt;p&gt;The process this script follows is documented inline, but the gist is that we do deployments by creating new instances and deleting old ones instead of running the &lt;code&gt;deploy&lt;/code&gt; command on an existing instance. This does take longer but I feel it's cleaner than deploying multiple times to the same instance.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;boto&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;time&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;sys&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Fill in the various required fields below (should be self explanatory)&lt;/span&gt;
+&lt;span class="n"&gt;AWS_ACCESS_KEY&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;FILL_ME&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;AWS_SECRET_KEY&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;FILL_ME&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;STACK_ID&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;FILL_ME&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;APP_ID&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;FILL_ME&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;LAYER_IDS&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;FILL_ME&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;INSTANCE_TYPE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;m1.medium&amp;quot;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# We allow users to build &amp;#39;parametrized&amp;#39; builds - they can specify the branch they want to use&lt;/span&gt;
+&lt;span class="c1"&gt;# to build the new instance. The APP is updated to use that branch and once the new instance is created,&lt;/span&gt;
+&lt;span class="c1"&gt;# it&amp;#39;s updated again to rever to master (this piece is hardcoded)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# This is the format OpsWorks expects (they should clean it up and make the dict be more pythonic)&lt;/span&gt;
+&lt;span class="n"&gt;APP_SOURCE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Url&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;FILL_ME&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Type&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;git&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Revision&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;BRANCH&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)}&lt;/span&gt;
+&lt;span class="n"&gt;APP_SOURCE_MASTER&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;APP_SOURCE&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;copy&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;APP_SOURCE_MASTER&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Revision&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;master&amp;quot;&lt;/span&gt; &lt;span class="c1"&gt;# default branch should always be master&lt;/span&gt;
+
+&lt;span class="n"&gt;opsworks&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;boto&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;connect_opsworks&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;aws_access_key_id&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;AWS_ACCESS_KEY&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;aws_secret_access_key&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;AWS_SECRET_KEY&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Print out the instances running presently&lt;/span&gt;
+&lt;span class="n"&gt;online_instances&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;map&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Hostname: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;, DNS: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;, Status: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Hostname&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;PrivateDns&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;PrivateDns&amp;#39;&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]),&lt;/span&gt; &lt;span class="n"&gt;opsworks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;describe_instances&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;stack_id&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;STACK_ID&lt;/span&gt;&lt;span class="p"&gt;)[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Instances&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Online Instances: &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;online_instances&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Deploying branch: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="n"&gt;APP_SOURCE&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Revision&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Update the app to use our specific branch&lt;/span&gt;
+&lt;span class="n"&gt;opsworks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;update_app&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;app_id&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;APP_ID&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;app_source&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;APP_SOURCE&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Adding another instance&amp;quot;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Creat the instance (we&amp;#39;ll later have to start it too)&lt;/span&gt;
+&lt;span class="n"&gt;new_inst&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;opsworks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;create_instance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;stack_id&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;STACK_ID&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;layer_ids&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;LAYER_IDS&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;instance_type&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;INSTANCE_TYPE&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;New Instance ID: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;. Starting it now&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="n"&gt;new_inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;InstanceId&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+&lt;span class="c1"&gt;# As promised, start the instance.&lt;/span&gt;
+&lt;span class="n"&gt;opsworks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;start_instance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;new_inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;InstanceId&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Start command sent. Checking Status now&amp;quot;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# We need to start &amp;#39;describing&amp;#39; the instance to check it&amp;#39;s status. Depending on the type of instance created&lt;/span&gt;
+&lt;span class="c1"&gt;# it can take a while to come up (m1.medium usually take 15-20 mins for me - anecdotal evidence though).&lt;/span&gt;
+&lt;span class="n"&gt;inst&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;opsworks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;describe_instances&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;instance_ids&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;new_inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;InstanceId&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]])[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Instances&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;New Instance Hostname: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;, Status: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Hostname&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Wait until the instance is either up or the setup failed.&lt;/span&gt;
+&lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;online&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;setup_failed&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+    &lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;stdout&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;flush&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;inst&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;opsworks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;describe_instances&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;instance_ids&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;new_inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;InstanceId&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]])[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Instances&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Status is: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;. Sleeping for 30 seconds&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="n"&gt;inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sleep&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;30&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Use this to specify (to Jenkins) whether the job failed or not.&lt;/span&gt;
+&lt;span class="n"&gt;EXIT_CODE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;online&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;New instance started. DNS: &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="n"&gt;inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;PrivateDns&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;setup_failed&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Error creating instance. See the Opsworks console for more information.&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;EXIT_CODE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Get the log file URL to show&lt;/span&gt;
+&lt;span class="n"&gt;log_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;opsworks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;describe_commands&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;instance_id&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;inst&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;InstanceId&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Commands&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;LogUrl&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Log file for this instance is &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="n"&gt;log_file&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Reverting the revision back to &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="n"&gt;APP_SOURCE_MASTER&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Revision&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+&lt;span class="n"&gt;opsworks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;update_app&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;app_id&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;APP_ID&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;app_source&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;APP_SOURCE_MASTER&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;All Done&amp;quot;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Exit with either success (0) or failure (1).&lt;/span&gt;
+&lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;EXIT_CODE&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Once this script is in place, you should also check the 'This build is parametrized' checkbox and select a &lt;code&gt;String Parameter&lt;/code&gt; with the name &lt;code&gt;Branch&lt;/code&gt; and default value with &lt;code&gt;master&lt;/code&gt;. Save the job - you should now be able to click the &lt;code&gt;Build with parameters&lt;/code&gt; option presented by Jenkins, optionally change the branch and then run the job. If things go well, Jenkins should give you the &lt;em&gt;PrivateDns&lt;/em&gt; URL for the instance.&lt;/p&gt;</content><category term="aws"></category><category term="python"></category></entry><entry><title>A quick Dockerfile to install Oracle's Java7 and Maven.</title><link href="/dockerfile-oracle-java-maven.html" rel="alternate"></link><published>2014-04-04T13:30:00-07:00</published><updated>2014-04-04T13:30:00-07:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2014-04-04:/dockerfile-oracle-java-maven.html</id><summary type="html">&lt;p&gt;A quick Dockerfile to install Oracle's Java7 and Maven.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Here's a quick Dockerfile to install Oracle's Java 7 and Maven.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;FROM dockerfile/java
+
+&lt;span class="c1"&gt;# Install maven&lt;/span&gt;
+RUN apt-get update
+RUN apt-get install -y maven
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This uses the the &lt;a href="https://index.docker.io/u/dockerfile/java/"&gt;trusted java build&lt;/a&gt; base image to install Java and then just installs the default maven version delivered with Ubuntu 12.04 (which seems to be &lt;strong&gt;3.0.4-2&lt;/strong&gt;).&lt;/p&gt;
+&lt;p&gt;Anyways, real simple Dockerfile - but it helps out when building Java code.&lt;/p&gt;</content><category term="docker"></category><category term="java"></category></entry><entry><title>Setting up a Pelican blog using Dropbox and Github Pages</title><link href="/pelica-dropbox-github-blog.html" rel="alternate"></link><published>2014-03-30T08:30:00-07:00</published><updated>2014-03-30T08:30:00-07:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2014-03-30:/pelica-dropbox-github-blog.html</id><summary type="html">&lt;p&gt;How I went about setting up my Pelican powered blog with the help of Dropbox and Github pages.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I just wanted to walk through how I set this blog up - both as a &lt;em&gt;How to&lt;/em&gt; for others and for posterity. If it isn't obvious yet, this blog is powered by &lt;a href="http://blog.getpelican.com/"&gt;Pelican&lt;/a&gt; (the version I'm using as of this writing in 3.3) and is hosted on &lt;a href="http://pages.github.com/"&gt;Github pages&lt;/a&gt;. What isn't obvious yet is that, in the background, &lt;a href="http://dropbox.com"&gt;Dropbox&lt;/a&gt; is helping out too.&lt;/p&gt;
+&lt;p&gt;So the structure I ended up following was to create a new folder in my Dropbox folder - I called it &lt;code&gt;gh-blog&lt;/code&gt;. Once in this folder, I follow the following steps:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo pip install virtualenv virtualenvwrapper 
+// setup virtualenvwrapper
+mkvirtualenv --no-site-packages gh-blog
+pip install pelican Fabric
+&lt;span class="nb"&gt;cd&lt;/span&gt; ~/Dropbox/gh-blog
+pelican-quickstart // I mostly followed the defaults
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;After this, I had a 'base' pelican blog setup. I tried running &lt;code&gt;fab build&lt;/code&gt; followed by &lt;code&gt;fab serve&lt;/code&gt; and going to &lt;a href="http://localhost:8000"&gt;http://localhost:8000&lt;/a&gt; but as expected, no blog posts were shown.&lt;/p&gt;
+&lt;p&gt;At this stage, I logged into github and created my public repository matching my username (rmanocha.github.com). Once this was done, I cloned this repository inside the &lt;code&gt;gh-blog&lt;/code&gt; folder:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; ~/Dropbox/gh-blog
+git clone git@github.com:rmanocha/rmanocha.github.com.git
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Finally, I updated the fabfile (&lt;code&gt;fabfile.py&lt;/code&gt;) to make the newly cloned folder the output folder (this is required since the output folder is where all the HTML and CSS generated by pelican is stored; and this is what is required by github to render your blog). My final fabfile.py looks like:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;fabric.api&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;fabric.contrib.project&lt;/span&gt; &lt;span class="kn"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;project&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Local path configuration (can be absolute or relative to fabfile)&lt;/span&gt;
+&lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;deploy_path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;rmanocha.github.com&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;DEPLOY_PATH&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;deploy_path&lt;/span&gt;
+&lt;span class="n"&gt;GITHUB_REPO&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;git@github.com:rmanocha/rmanocha.github.com.git&amp;#39;&lt;/span&gt;
+
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;clean&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;isdir&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;DEPLOY_PATH&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;rm -rf {deploy_path}&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+        &lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;git clone &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="n"&gt;GITHUB_REPO&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;build&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;pelican -s pelicanconf.py -o {deploy_path} content&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;rebuild&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;clean&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;build&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;regenerate&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;pelican -r -s pelicanconf.py&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;serve&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;cd {deploy_path} &amp;amp;&amp;amp; python -m SimpleHTTPServer&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;reserve&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;build&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;serve&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;preview&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;pelican -s publishconf.py&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You will need to change the &lt;code&gt;env.deploy_path&lt;/code&gt; and &lt;code&gt;GITHUB_REPO&lt;/code&gt; variables above. I haven't yet cleaned up the &lt;code&gt;preview&lt;/code&gt; and &lt;code&gt;regenerate&lt;/code&gt; commands - I haven't really used them yet. As you will notice in the &lt;code&gt;build&lt;/code&gt; command above, the 'content' we're going to generate is going to be stored in the &lt;code&gt;content&lt;/code&gt; folder. So essentially, this is where all your blog posts will go.&lt;/p&gt;
+&lt;p&gt;After adding a new post within the &lt;code&gt;content&lt;/code&gt; folder, I ran &lt;code&gt;fab rebuild&lt;/code&gt; followed by a &lt;code&gt;fab serve&lt;/code&gt;. Browsing to &lt;a href="http://localhost:8000"&gt;http://localhost:8000&lt;/a&gt; should now show you your new blog post. After making sure everything looked good, I just did the following:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; ~/Dropbox/gh-blog/rmanocha.github.com
+git add .
+git commit -av -m &lt;span class="s2"&gt;&amp;quot;first blog post&amp;quot;&lt;/span&gt;
+git push
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Tada. I was now able to browse to &lt;a href="http://rmanocha.github.io"&gt;http://rmanocha.github.io&lt;/a&gt; and see my freshly minted blog post.&lt;/p&gt;
+&lt;p&gt;This setup allowed me to store my raw, markdown formatted blog posts somewhere (I didn't want to pay for a github repository) that was backed up and (sort of) version controlled while still publishing the blog posts I wanted to, to github. So far, things seem to be working smoothly.&lt;/p&gt;</content><category term="pelican"></category><category term="github"></category></entry><entry><title>Hello World</title><link href="/hello-world.html" rel="alternate"></link><published>2014-03-29T10:40:00-07:00</published><updated>2014-03-29T10:40:00-07:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2014-03-29:/hello-world.html</id><summary type="html">&lt;p&gt;New blog (yet again)&lt;/p&gt;</summary><content type="html">&lt;p&gt;Hello World!! Here I am again, with yet another blog. My previous blogs (here's &lt;a href="http://mylifelogontheweb.blogspot.com/"&gt;one&lt;/a&gt; - the other was on posterous :( ). I'm hoping this one sticks around though.&lt;/p&gt;
+&lt;p&gt;Among other things, I plan to use this space to write mostly about various things I learn while writing software in different languages. Given than I'm currently playing around with &lt;a href="http://golang.org"&gt;Go&lt;/a&gt;, you might be reading a lot about that :).&lt;/p&gt;
+&lt;p&gt;Here's hoping I make something of this blog.&lt;/p&gt;</content></entry></feed>
