@@ -1,5 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Rishabh's musings - Rishabh Manocha</title><link href="/" rel="alternate"></link><link href="/feeds/rishabh-manocha.atom.xml" rel="self"></link><id>/</id><updated>2017-11-10T09:00:00-08:00</updated><entry><title>Getting started with EMR + Apache Spark</title><link href="/aws-emr-spark-getting-started.html" rel="alternate"></link><published>2017-11-10T09:00:00-08:00</published><updated>2017-11-10T09:00:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2017-11-10:/aws-emr-spark-getting-started.html</id><summary type="html">&lt;p&gt;Some basic things to know about getting started with Apache Spark on AWS EMR&lt;/p&gt;</summary><content type="html">&lt;p&gt;It's been a while since my last post. Given that I've been playing 
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Rishabh's musings - Rishabh Manocha</title><link href="/" rel="alternate"></link><link href="/feeds/rishabh-manocha.atom.xml" rel="self"></link><id>/</id><updated>2017-11-25T14:00:00-08:00</updated><entry><title>Getting started with EMR Spark Steps</title><link href="/aws-emr-spark-steps.html" rel="alternate"></link><published>2017-11-25T14:00:00-08:00</published><updated>2017-11-25T14:00:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2017-11-25:/aws-emr-spark-steps.html</id><summary type="html">&lt;p&gt;How to think about and use Spark Steps in EMR&lt;/p&gt;</summary><content type="html">&lt;p&gt;Let's talk a little bit about &lt;a href="http://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-submit-step.html"&gt;EMR Spark Step&lt;/a&gt;. 
+This is the recommended way to kick off spark jobs in EMR. Well, recommended at-least for streaming jobs (since that's all 
+I have experience with so far).&lt;/p&gt;
+&lt;p&gt;When running a spark job in standalone mode, you usually end up doing so by using &lt;em&gt;spark-submit&lt;/em&gt; after downloading your 
+spark distribution. &lt;/p&gt;
+&lt;p&gt;That command usually ends up looking something like this (the parameters passed in are not important for now):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;bin/spark-submit --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.2.0 ~/spark/job.py stream
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The EMR step does something very similar. Only differnece (for me, anyways) is that I don't need to ssh into the master node 
+and kick the job off manually. In addition, by doing so, you get to see your steps and their status in the EMR cluster's dashboard 
+on the AWS UI.&lt;/p&gt;
+&lt;p&gt;Now, here's what starting the cluster via the AWS UI would look like: &lt;/p&gt;
+&lt;p&gt;&lt;a href="/images/emr_spark_step_populated.png"&gt;&lt;img src="/images/emr_spark_step_populated.png" style="max-width: 100%" /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The steps I followed to get this to work as I expected it to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;On the Create Cluster screen, click on "Go to advanced options" at the top (there's a link next to the &lt;em&gt;Quick Options&lt;/em&gt; text)&lt;/li&gt;
+&lt;li&gt;Once you are on the &lt;em&gt;Advanced Options&lt;/em&gt; screen, you can select the EMR version as well as the applications you want your cluster to have. 
+   One of these has to be Spark, since we're starting a spark streaming app.&lt;/li&gt;
+&lt;li&gt;Now, under the &lt;em&gt;Add Steps&lt;/em&gt; section, you want to select the &lt;em&gt;Spark Application&lt;/em&gt; step type and click configure.&lt;/li&gt;
+&lt;li&gt;In the dialog that opens next, we start filling in the various options shown in the screenshot above&lt;ul&gt;
+&lt;li&gt;You can give your step a name. I haven't ever changed the default so far, since I'm only running a single job on the cluster for now. &lt;/li&gt;
+&lt;li&gt;I haven't ever changed the deploy mode either. The help instructions there give you some info, so feel free to give it a shot :)&lt;/li&gt;
+&lt;li&gt;Now comes the interesting bits. Spark-submit options are the options you'd want to pass in to the spark-submit command.
+  This is where you'd pass in, for example, the kinesis streaming jar (since it doesn't come pre-packaged with spark) as I've 
+  done in the screenshot above.&lt;/li&gt;
+&lt;li&gt;Application location is where you've put your jar or python script that you'd want spark to execute. As is usual with many AWS 
+  services, they want this to be in S3.&lt;/li&gt;
+&lt;li&gt;Arguments are the parameters you want to pass in to your streaming application. Usually, this would include the stream name you want to 
+  target or the environment this job is running in etc (I haven't figured out how to set the environment as a system variable on each node in 
+  the cluster).&lt;/li&gt;
+&lt;li&gt;Finally, the &lt;em&gt;Action on Failure&lt;/em&gt; option let's you specify what you want to have happen with the cluster when the step fails. The options
+  I have tried out are &lt;em&gt;Terminate&lt;/em&gt; and &lt;em&gt;Continue&lt;/em&gt; both of which do what you'd expect them to do (i.e. the former shuts down the EMR cluster 
+  and the latter keeps it running).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You can of-course, do all this via the CLI as well. The command to do this looks like:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;aws emr create-cluster --termination-protected --applications &lt;span class="nv"&gt;Name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Hadoop &lt;span class="nv"&gt;Name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Zeppelin &lt;span class="nv"&gt;Name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Spark &lt;span class="nv"&gt;Name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Ganglia --release-label emr-5.9.0 --steps &lt;span class="s1"&gt;&amp;#39;[{&amp;quot;Args&amp;quot;:[&amp;quot;spark-submit&amp;quot;,&amp;quot;--deploy-mode&amp;quot;,&amp;quot;cluster&amp;quot;,&amp;quot;--packages&amp;quot;,&amp;quot;org.apache.spark:spark-streaming-kinesis-asl_2.11:2.2.0&amp;quot;,&amp;quot;s3://bucket/job.py&amp;quot;,&amp;quot;params1&amp;quot;, &amp;quot;params2&amp;quot;],&amp;quot;Type&amp;quot;:&amp;quot;CUSTOM_JAR&amp;quot;,&amp;quot;ActionOnFailure&amp;quot;:&amp;quot;CONTINUE&amp;quot;,&amp;quot;Jar&amp;quot;:&amp;quot;command-runner.jar&amp;quot;,&amp;quot;Properties&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;Name&amp;quot;:&amp;quot;Spark application&amp;quot;}]&amp;#39;&lt;/span&gt; --instance-groups &lt;span class="s1"&gt;&amp;#39;[{&amp;quot;InstanceCount&amp;quot;:1,&amp;quot;InstanceGroupType&amp;quot;:&amp;quot;MASTER&amp;quot;,&amp;quot;InstanceType&amp;quot;:&amp;quot;m3.xlarge&amp;quot;,&amp;quot;Name&amp;quot;:&amp;quot;Master - 1&amp;quot;},{&amp;quot;InstanceCount&amp;quot;:2,&amp;quot;InstanceGroupType&amp;quot;:&amp;quot;CORE&amp;quot;,&amp;quot;InstanceType&amp;quot;:&amp;quot;m3.xlarge&amp;quot;,&amp;quot;Name&amp;quot;:&amp;quot;Core - 2&amp;quot;}]&amp;#39;&lt;/span&gt; --auto-scaling-role EMR_AutoScaling_DefaultRole --ebs-root-volume-size &lt;span class="m"&gt;10&lt;/span&gt; --service-role EMR_DefaultRole --enable-debugging --name &lt;span class="s1"&gt;&amp;#39;RMSparkCluster&amp;#39;&lt;/span&gt; --scale-down-behavior TERMINATE_AT_INSTANCE_HOUR --region us-west-2
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The only interesting part about this is how to pass in the options to the &lt;em&gt;--steps&lt;/em&gt; parameter. You do this with individual strings in the list you pass in; not sure why this is.&lt;/p&gt;
+&lt;p&gt;That's it - with this, you now have specific an EMR Spark Step that'll let you run your streaming job when your EMR cluster comes up. I've found 
+that use Spark Steps makes it much easier to kick off Spark streaming jobs against a kinesis stream along and have things like metrics, status and the
+number of jobs running.&lt;/p&gt;</content><category term="aws"></category><category term="emr"></category><category term="apache-spark"></category></entry><entry><title>Getting started with EMR + Apache Spark</title><link href="/aws-emr-spark-getting-started.html" rel="alternate"></link><published>2017-11-10T09:00:00-08:00</published><updated>2017-11-10T09:00:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2017-11-10:/aws-emr-spark-getting-started.html</id><summary type="html">&lt;p&gt;Some basic things to know about getting started with Apache Spark on AWS EMR&lt;/p&gt;</summary><content type="html">&lt;p&gt;It's been a while since my last post. Given that I've been playing 
 around with &lt;a href="https://spark.apache.org/"&gt;Apache Spark&lt;/a&gt; on 
 &lt;a href="https://aws.amazon.com/emr/"&gt;AWS EMR&lt;/a&gt; lately, I figured I'd write 
 about it.&lt;/p&gt;

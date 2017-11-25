@@ -21,7 +21,77 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="/aws-emr-spark-getting-started.html">Getting started with EMR + Apache Spark</a></h1>
+                    <h1 class="entry-title"><a href="/aws-emr-spark-steps.html">Getting started with EMR Spark Steps</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2017-11-25T14:00:00-08:00">
+                Published: Sat 25 November 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+        </address>
+<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
+<p>tags: <a href="/tag/aws.html">aws</a> <a href="/tag/emr.html">emr</a> <a href="/tag/apache-spark.html">apache-spark</a> </p>
+</footer><!-- /.post-info --><p>Let's talk a little bit about <a href="http://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-submit-step.html">EMR Spark Step</a>. 
+This is the recommended way to kick off spark jobs in EMR. Well, recommended at-least for streaming jobs (since that's all 
+I have experience with so far).</p>
+<p>When running a spark job in standalone mode, you usually end up doing so by using <em>spark-submit</em> after downloading your 
+spark distribution. </p>
+<p>That command usually ends up looking something like this (the parameters passed in are not important for now):</p>
+<div class="highlight"><pre><span></span>bin/spark-submit --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.2.0 ~/spark/job.py stream
+</pre></div>
+
+
+<p>The EMR step does something very similar. Only differnece (for me, anyways) is that I don't need to ssh into the master node 
+and kick the job off manually. In addition, by doing so, you get to see your steps and their status in the EMR cluster's dashboard 
+on the AWS UI.</p>
+<p>Now, here's what starting the cluster via the AWS UI would look like: </p>
+<p><a href="/images/emr_spark_step_populated.png"><img src="/images/emr_spark_step_populated.png" style="max-width: 100%" /></a></p>
+<p>The steps I followed to get this to work as I expected it to:</p>
+<ul>
+<li>On the Create Cluster screen, click on "Go to advanced options" at the top (there's a link next to the <em>Quick Options</em> text)</li>
+<li>Once you are on the <em>Advanced Options</em> screen, you can select the EMR version as well as the applications you want your cluster to have. 
+   One of these has to be Spark, since we're starting a spark streaming app.</li>
+<li>Now, under the <em>Add Steps</em> section, you want to select the <em>Spark Application</em> step type and click configure.</li>
+<li>In the dialog that opens next, we start filling in the various options shown in the screenshot above<ul>
+<li>You can give your step a name. I haven't ever changed the default so far, since I'm only running a single job on the cluster for now. </li>
+<li>I haven't ever changed the deploy mode either. The help instructions there give you some info, so feel free to give it a shot :)</li>
+<li>Now comes the interesting bits. Spark-submit options are the options you'd want to pass in to the spark-submit command.
+  This is where you'd pass in, for example, the kinesis streaming jar (since it doesn't come pre-packaged with spark) as I've 
+  done in the screenshot above.</li>
+<li>Application location is where you've put your jar or python script that you'd want spark to execute. As is usual with many AWS 
+  services, they want this to be in S3.</li>
+<li>Arguments are the parameters you want to pass in to your streaming application. Usually, this would include the stream name you want to 
+  target or the environment this job is running in etc (I haven't figured out how to set the environment as a system variable on each node in 
+  the cluster).</li>
+<li>Finally, the <em>Action on Failure</em> option let's you specify what you want to have happen with the cluster when the step fails. The options
+  I have tried out are <em>Terminate</em> and <em>Continue</em> both of which do what you'd expect them to do (i.e. the former shuts down the EMR cluster 
+  and the latter keeps it running).</li>
+</ul>
+</li>
+</ul>
+<p>You can of-course, do all this via the CLI as well. The command to do this looks like:</p>
+<div class="highlight"><pre><span></span>aws emr create-cluster --termination-protected --applications <span class="nv">Name</span><span class="o">=</span>Hadoop <span class="nv">Name</span><span class="o">=</span>Zeppelin <span class="nv">Name</span><span class="o">=</span>Spark <span class="nv">Name</span><span class="o">=</span>Ganglia --release-label emr-5.9.0 --steps <span class="s1">&#39;[{&quot;Args&quot;:[&quot;spark-submit&quot;,&quot;--deploy-mode&quot;,&quot;cluster&quot;,&quot;--packages&quot;,&quot;org.apache.spark:spark-streaming-kinesis-asl_2.11:2.2.0&quot;,&quot;s3://bucket/job.py&quot;,&quot;params1&quot;, &quot;params2&quot;],&quot;Type&quot;:&quot;CUSTOM_JAR&quot;,&quot;ActionOnFailure&quot;:&quot;CONTINUE&quot;,&quot;Jar&quot;:&quot;command-runner.jar&quot;,&quot;Properties&quot;:&quot;&quot;,&quot;Name&quot;:&quot;Spark application&quot;}]&#39;</span> --instance-groups <span class="s1">&#39;[{&quot;InstanceCount&quot;:1,&quot;InstanceGroupType&quot;:&quot;MASTER&quot;,&quot;InstanceType&quot;:&quot;m3.xlarge&quot;,&quot;Name&quot;:&quot;Master - 1&quot;},{&quot;InstanceCount&quot;:2,&quot;InstanceGroupType&quot;:&quot;CORE&quot;,&quot;InstanceType&quot;:&quot;m3.xlarge&quot;,&quot;Name&quot;:&quot;Core - 2&quot;}]&#39;</span> --auto-scaling-role EMR_AutoScaling_DefaultRole --ebs-root-volume-size <span class="m">10</span> --service-role EMR_DefaultRole --enable-debugging --name <span class="s1">&#39;RMSparkCluster&#39;</span> --scale-down-behavior TERMINATE_AT_INSTANCE_HOUR --region us-west-2
+</pre></div>
+
+
+<p>The only interesting part about this is how to pass in the options to the <em>--steps</em> parameter. You do this with individual strings in the list you pass in; not sure why this is.</p>
+<p>That's it - with this, you now have specific an EMR Spark Step that'll let you run your streaming job when your EMR cluster comes up. I've found 
+that use Spark Steps makes it much easier to kick off Spark streaming jobs against a kinesis stream along and have things like metrics, status and the
+number of jobs running.</p>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="/aws-emr-spark-getting-started.html" rel="bookmark"
+                           title="Permalink to Getting started with EMR + Apache Spark">Getting started with EMR + Apache Spark</a></h1>
+                </header>
+
+                <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2017-11-10T09:00:00-08:00">
                 Published: Fri 10 November 2017
@@ -32,44 +102,12 @@
         </address>
 <p>In <a href="/category/devnotes.html">devnotes</a>.</p>
 <p>tags: <a href="/tag/aws.html">aws</a> <a href="/tag/emr.html">emr</a> <a href="/tag/apache-spark.html">apache-spark</a> </p>
-</footer><!-- /.post-info --><p>It's been a while since my last post. Given that I've been playing 
-around with <a href="https://spark.apache.org/">Apache Spark</a> on 
-<a href="https://aws.amazon.com/emr/">AWS EMR</a> lately, I figured I'd write 
-about it.</p>
-<p>At work, we're trying to solve a specific problem: we want to know 
-how many times has a particular user has taken a particular action over 
-a rolling window of time (ranging from seconds to hours). Further, 
-we want this data to be calculated in near real time so that actions
-can be taken based on this "aggregation" by another process while the
-user is navigating our site, as opposed to a few hours later (which 
-is what we have done so far, since we rely on our data warehouse to 
-be the source of information for the calculations). For 
-example, at LinkedIn, we'd want to know how many times has a given 
-user viewed another user's profile over the last 10 minutes. A 
-simple use case for this aggregation might be to calculate the 99'th 
-percentile of profile views over the 10 minute rolling window.</p>
-<p>I'll write a separate, and more detailed blog post about the architecural 
-choices we made and what the tradeoffs were, but for now, 
-I just wanted to list some things that I found interesting while working with 
-EMR and Spark 2.2.0 (again, more details in separate (several ?) blog posts):</p>
-<ul>
-<li>There's no easy way to load the Spark UI when running an EMR cluster. You 
-have to setup an SSH tunnel to get in, and in our case, this caused issues since 
-our VPC for the project (we have isolated VPCs so that we do not adversely impact 
-our production workloads with our 'analytics' workloads, at-least not yet) 
-won't allow us to ssh into machines in it from inside our corporate VPN (
-I don't understand why, and I don't understand VPCs in general, really).</li>
-<li>The best way to actually kick off a Spark Streaming job is to use an 
-<a href="http://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-submit-step.html">EMR Spark Step</a>. 
-These allow you to define specific actions you want EMR to take once the cluster has been bootstrapped. 
-You can also tell EMR to shutdown the cluster once all steps assigned to it have been executed.</li>
-<li>A good way to install packages your streaming job needs is to use 
-<a href="http://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-plan-bootstrap.html">Bootstrap actions</a>. For me,
-I needed <em>boto3</em> to be installed on the workers so that once my python each streaming batch was done, 
-I could send the results into a kinesis stream.</li>
-</ul>
-<p>I'll talk in more details about each one of these (and some other things) in follow up blog posts.</p>                </article>
-            </aside><!-- /#featured -->
+</footer><!-- /.post-info -->                <p>Some basic things to know about getting started with Apache Spark on AWS EMR</p>
+                <a class="readmore" href="/aws-emr-spark-getting-started.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
+                </ol><!-- /#posts-list -->
+                </section><!-- /#content -->
         <section id="extras" class="body">
                 <div class="social">
                         <h2>social</h2>
