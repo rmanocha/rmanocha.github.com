@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
         <meta charset="utf-8" />
-        <title>Rishabh's blog - devnotes</title>
+        <title>Using contracts for Data Warehouse batch ETL processes</title>
         <link rel="stylesheet" href="/theme/css/main.css" />
 
         <!--[if IE]>
@@ -18,10 +18,15 @@
                     <li><a href="/category/misc.html">misc</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/contracts-data-warehouse-batch-etl.html" rel="bookmark"
+           title="Permalink to Using contracts for Data Warehouse batch ETL processes">Using contracts for Data Warehouse batch ETL processes</a></h1>
+    </header>
 
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="/contracts-data-warehouse-batch-etl.html">Using contracts for Data Warehouse batch ETL processes</a></h1>
+    <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2017-12-22T20:00:00-08:00">
                 Published: Fri 22 December 2017
@@ -32,7 +37,7 @@
         </address>
 <p>In <a href="/category/devnotes.html">devnotes</a>.</p>
 <p>tags: <a href="/tag/systems-design.html">systems-design</a> </p>
-</footer><!-- /.post-info --><h1>Introduction</h1>
+</footer><!-- /.post-info -->      <h1>Introduction</h1>
 <p>Like many other companies, we have a Data Warehouse that brings together
 all our production data sources into a single location to enable various 
 business functions such as business intelligence, data analytics, 
@@ -131,146 +136,11 @@ as soon as we could. While this worked very well for the product, it would not h
 querying a jsonb column isn't exactly easy. Instead of making a simple copy of the table(s) in question, we copied our existing 
 AWS data pipeline jobs, made modifications to the transformation scripts, agreed with the data warehouse team on a set of contracts 
 (tables) we'd deliver to them and let them work on transforming the data from these tables into the final versions exposed in 
-the data warehouse to be used by the analytics and product teams to understand the efficacy of the new solution we'd launched.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+the data warehouse to be used by the analytics and product teams to understand the efficacy of the new solution we'd launched.</p>
+    </div><!-- /.entry-content -->
 
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/aws-emr-spark-steps.html" rel="bookmark"
-                           title="Permalink to Getting started with EMR Spark Steps">Getting started with EMR Spark Steps</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2017-11-25T14:00:00-08:00">
-                Published: Sat 25 November 2017
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
-<p>tags: <a href="/tag/aws.html">aws</a> <a href="/tag/emr.html">emr</a> <a href="/tag/apache-spark.html">apache-spark</a> </p>
-</footer><!-- /.post-info -->                <p>How to think about and use Spark Steps in EMR</p>
-                <a class="readmore" href="/aws-emr-spark-steps.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/aws-emr-spark-getting-started.html" rel="bookmark"
-                           title="Permalink to Getting started with EMR + Apache Spark">Getting started with EMR + Apache Spark</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2017-11-10T09:00:00-08:00">
-                Published: Fri 10 November 2017
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
-<p>tags: <a href="/tag/aws.html">aws</a> <a href="/tag/emr.html">emr</a> <a href="/tag/apache-spark.html">apache-spark</a> </p>
-</footer><!-- /.post-info -->                <p>Some basic things to know about getting started with Apache Spark on AWS EMR</p>
-                <a class="readmore" href="/aws-emr-spark-getting-started.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/rpi-ios-home-automation.html" rel="bookmark"
-                           title="Permalink to Experiments with RaspberryPi and iOS for home automation">Experiments with RaspberryPi and iOS for home automation</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2015-11-22T08:00:00-08:00">
-                Published: Sun 22 November 2015
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
-<p>tags: <a href="/tag/raspberrypi.html">raspberrypi</a> <a href="/tag/ios.html">ios</a> <a href="/tag/python.html">python</a> </p>
-</footer><!-- /.post-info -->                <p>Some notes and thoughts on how to go about doing home automation using a RaspberryPi followed up by an iOS app to use the features.</p>
-                <a class="readmore" href="/rpi-ios-home-automation.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/opsworks-boto-jenkins-automation.html" rel="bookmark"
-                           title="Permalink to Opsworks stack automation using Jenkins and AWS Boto">Opsworks stack automation using Jenkins and AWS Boto</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2014-07-30T08:00:00-07:00">
-                Published: Wed 30 July 2014
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
-<p>tags: <a href="/tag/aws.html">aws</a> <a href="/tag/python.html">python</a> </p>
-</footer><!-- /.post-info -->                <p>A python script that allows us to automate the creation of new instances within an Opsworks stack via a Jenkins job.</p>
-                <a class="readmore" href="/opsworks-boto-jenkins-automation.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/dockerfile-oracle-java-maven.html" rel="bookmark"
-                           title="Permalink to A quick Dockerfile to install Oracle's Java7 and Maven.">A quick Dockerfile to install Oracle's Java7 and Maven.</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2014-04-04T13:30:00-07:00">
-                Published: Fri 04 April 2014
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
-<p>tags: <a href="/tag/docker.html">docker</a> <a href="/tag/java.html">java</a> </p>
-</footer><!-- /.post-info -->                <p>A quick Dockerfile to install Oracle's Java7 and Maven.</p>
-                <a class="readmore" href="/dockerfile-oracle-java-maven.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/pelica-dropbox-github-blog.html" rel="bookmark"
-                           title="Permalink to Setting up a Pelican blog using Dropbox and Github Pages">Setting up a Pelican blog using Dropbox and Github Pages</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2014-03-30T08:30:00-07:00">
-                Published: Sun 30 March 2014
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
-<p>tags: <a href="/tag/pelican.html">pelican</a> <a href="/tag/github.html">github</a> </p>
-</footer><!-- /.post-info -->                <p>How I went about setting up my Pelican powered blog with the help of Dropbox and Github pages.</p>
-                <a class="readmore" href="/pelica-dropbox-github-blog.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-                </ol><!-- /#posts-list -->
-                </section><!-- /#content -->
+  </article>
+</section>
         <section id="extras" class="body">
                 <div class="social">
                         <h2>social</h2>
