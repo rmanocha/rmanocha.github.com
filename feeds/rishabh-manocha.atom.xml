@@ -1,5 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Rishabh's blog - Rishabh Manocha</title><link href="/" rel="alternate"></link><link href="/feeds/rishabh-manocha.atom.xml" rel="self"></link><id>/</id><updated>2017-12-22T20:00:00-08:00</updated><entry><title>Using contracts for Data Warehouse batch ETL processes</title><link href="/contracts-data-warehouse-batch-etl.html" rel="alternate"></link><published>2017-12-22T20:00:00-08:00</published><updated>2017-12-22T20:00:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2017-12-22:/contracts-data-warehouse-batch-etl.html</id><summary type="html">&lt;p&gt;using-contracts-data-warehouse-batch-etl&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Introduction&lt;/h1&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Rishabh's blog - Rishabh Manocha</title><link href="/" rel="alternate"></link><link href="/feeds/rishabh-manocha.atom.xml" rel="self"></link><id>/</id><updated>2018-01-27T20:00:00-08:00</updated><entry><title>Searching the Oakland Library for books from your Goodreads Shelf</title><link href="/oakland-lib-goodreads-searcher.html" rel="alternate"></link><published>2018-01-27T20:00:00-08:00</published><updated>2018-01-27T20:00:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2018-01-27:/oakland-lib-goodreads-searcher.html</id><summary type="html">&lt;p&gt;A utility to search the Oakland library Catalog for available books from your Goodreads "to-read" shelf&lt;/p&gt;</summary><content type="html">&lt;p&gt;My only new years resolution this year was to read more books. Over the past couple of years, I had 
+essentially stopped reading books, and that realization was not a joyous one. Reading books 
+is a fun way to both learn and be entertained. Jhumpa Lahiri had a 
+&lt;a href="https://www.goodreads.com/quotes/76236-that-s-the-thing-about-books-they-let-you-travel-without"&gt;good quote&lt;/a&gt; 
+in The Namesake: &lt;code&gt;That's the thing about books. They let you travel without moving your feet.&lt;/code&gt; 
+I'm happy to say, that so far, I've maintained my resolution, having finished 
+&lt;a href="https://www.goodreads.com/book/show/4865.How_to_Win_Friends_and_Influence_People"&gt;two&lt;/a&gt; 
+&lt;a href="https://www.goodreads.com/book/show/7069.The_World_According_to_Garp"&gt;books&lt;/a&gt; already 
+and am onto my &lt;a href="https://www.goodreads.com/book/show/11468377-thinking-fast-and-slow"&gt;third one&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Anyways, since I have a subscription to the Oakland Library, I figured it'd be better for me to borrow 
+the books I want to read as opposed to buying them each time (even though it's fun to fill out a 
+bookshelf). At the same time, I started keeping track of books I want to read on 
+&lt;a href="https://www.goodreads.com/"&gt;Goodreads&lt;/a&gt; (the shelves they have, along with the ability to order 
+the books makes it a useful utility for me). The first book I borrowed from the library was 
+Thinking Fast and Slow and the process of me finding a copy to borrow left me wanting for a 
+better way to locate and hold a book. The story goes something like this: find the 
+next book I want to read from my GR shelf, search on the oakland library website for it's 
+availability, find out that it's not available, rinse and repeat until one
+becomes available (took me a few days). The putting it on hold was particulary important 
+since I had one occasion where I saw the book was available at a particular branch, 
+immdiately left to go pick it up (without putting it on hold) and by the time I 
+reached there (~15 minutes), someone had already borrowed it. I eventually did find a copy 
+at a different branch but I really wanted a better way of doing things.&lt;/p&gt;
+&lt;p&gt;The solution to my problem was to build an API that accesses the Oakland Library Catalog (they 
+don't really have an API, so this library scrapes their website) and combine it with the 
+published API from GR (xml, really) to tell me whether the books on my shelf are available 
+at the library or not (and more in the future). At the same time, working on this project 
+gave me the opportunity to learn and use Python3, something I hadn't really done until now 
+(for no good reason besides laziness).&lt;/p&gt;
+&lt;h1&gt;Building an "API" for the Oakland Library Catalog&lt;/h1&gt;
+&lt;p&gt;To be able to search their catalog programatically, I had to write a simple scraper. This 
+was done using the awesome &lt;a href="http://docs.python-requests.org/en/master/"&gt;requests&lt;/a&gt; library 
+for making the http requests and the equally awesome 
+&lt;a href="https://www.crummy.com/software/BeautifulSoup/"&gt;BeautilfulSoup&lt;/a&gt; library to parse the HTML 
+response to find the elements I'm looking for. The code for all of this is available on 
+&lt;a href="https://github.com/rmanocha/oaklibsearcher/blob/master/oaklibapi/api.py"&gt;github&lt;/a&gt; and 
+should be fairly easy to follow. The &lt;em&gt;oaklibapi&lt;/em&gt; module is intended to be an API module 
+though and, if needed, can be imported into other projects as well. Some sample code showing 
+how to use it:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;oaklibapi&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;OaklandLibraryAPI&lt;/span&gt;
+
+&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="n"&gt;oaklib&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;OaklandLibraryAPI&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;isbn&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;9780060892999&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;# you can only search by the book&amp;#39;s ISBN&lt;/span&gt;
+
+&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="n"&gt;oaklib&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_available&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="c1"&gt;# check if the book is available&lt;/span&gt;
+&lt;span class="n"&gt;Out&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="bp"&gt;True&lt;/span&gt;
+
+&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="n"&gt;oaklib&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="c1"&gt;# retrieve the title as returned by the Oakland Library Catalog&lt;/span&gt;
+&lt;span class="n"&gt;Out&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;A canticle for Leibowitz&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;That's all there is to it as of now. I need to add a couple more enhancements, specifically 
+around &lt;a href="https://github.com/rmanocha/oaklibsearcher/issues/3"&gt;retreiving the number of books available&lt;/a&gt; 
+as well as &lt;a href="https://github.com/rmanocha/oaklibsearcher/issues/6"&gt;the branches they're available at&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;An interesting bit to note here is that BeautifulSoup since v4 has started giving users the option to 
+specify a parser. I ended up using the the &lt;a href="http://lxml.de/"&gt;lxml parser&lt;/a&gt; for this since I had to use it 
+to parse XML from the GR api anyways. I didn't benchmark things, but as documented, and based on my 
+very non-scientific observations, I did perceive an improvement in instantiating the &lt;code&gt;OaklandLibraryAPI&lt;/code&gt; 
+class.&lt;/p&gt;
+&lt;h1&gt;Integrating with the Goodreads API&lt;/h1&gt;
+&lt;p&gt;Fortunately, GR does &lt;a href="https://www.goodreads.com/api"&gt;publish an API&lt;/a&gt;. It does seem rather antiquated 
+though - responses are in XML (some are in JSON, which is weird too; why do only some of the 
+resources return either XML or JSON while most only return XML) and there are no official 
+client libraries. There are &lt;a href="https://github.com/sefakilic/goodreads/"&gt;libraries&lt;/a&gt; 
+&lt;a href="https://github.com/dasevilla/goodreads-python"&gt;available&lt;/a&gt; on github. None of them really did what 
+I wanted them to do though (albeit, I only spent a short amount of time looking) and since it was 
+fairly easy to query the API and parse the response myself, I just ended up doing so, instead of 
+using one of the available libraries.&lt;/p&gt;
+&lt;p&gt;My goal with this API was to simply retrieve my 
+&lt;a href="https://www.goodreads.com/review/list/75811584?shelf=to-read"&gt;"to-read" bookshelf&lt;/a&gt;. It took me 
+some time to figure out that I had to use the &lt;a href="https://www.goodreads.com/api/index#reviews.list"&gt;reviews.list&lt;/a&gt; 
+resource for this (go figure). Only other thing to note here that BeautifulSoup does not seem to have a 
+default parser for XML documents. I had to explicitly define &lt;em&gt;lxml&lt;/em&gt; while parsing the response from the API 
+(as opposed to HTML, which does seem to have a default parser, which does throw a big &amp;amp; ugly warning when 
+not overridden though).&lt;/p&gt;
+&lt;p&gt;Here's some sample code on how to use &lt;em&gt;GoodreadsQueryAPI&lt;/em&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;goodreads_api&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;GoodreadsQueryAPI&lt;/span&gt;
+
+&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="n"&gt;gr&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;GoodreadsQueryAPI&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;user_id&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;75811584&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;access_key&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;# insert your GR API access key for the second param&lt;/span&gt;
+
+&lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;book&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;gr&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get_books&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+   &lt;span class="o"&gt;...&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;     &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;book&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+   &lt;span class="o"&gt;...&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9780802123459&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;The Sympathizer&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9780525427575&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Enlightenment Now: The Case for Reason, Science, Humanism, and Progress&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9780670022953&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;The Better Angels of Our Nature: Why Violence Has Declined&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9780812536355&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;A Deepness in the Sky (Zones of Thought, #2)&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;The Wandering Earth: Classic Science Fiction Collection&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9780765309402&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Old Man&amp;#39;s War (Old Man&amp;#39;s War, #1)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9781585422784&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Ultramarathon Man: Confessions of an All-Night Runner&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9780316547611&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;The Power&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;We Are Legion (We Are Bob) (Bobiverse, #1)&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Split Second&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9781101886724&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Waking Gods (Themis Files, #2)&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9781594631764&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;And the Mountains Echoed&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9780062273208&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;The Hard Thing About Hard Things: Building a Business When There Are No Easy Answers&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9781501126062&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Sing, Unburied, Sing&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9780670026197&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;A Gentleman in Moscow&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9780553447439&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Evicted: Poverty and Profit in the American City&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9781594204876&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Grant&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;isbn&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;9781501144318&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Why We Sleep: Unlocking the Power of Sleep and Dreams&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Of-course, many improvements can be made to the interface, but this works for a v0.1 :). I think it'd also be good to 
+be able to pull &lt;a href="https://github.com/rmanocha/oaklibsearcher/issues/1"&gt;the name of the author&lt;/a&gt; as well as ordering 
+the books in the response by &lt;a href="https://github.com/rmanocha/oaklibsearcher/issues/10"&gt;position defined by the user&lt;/a&gt;.&lt;/p&gt;
+&lt;h1&gt;Putting it all together&lt;/h1&gt;
+&lt;p&gt;Having the API for the library and Goodreads makes it easy for us to put everything together. Grabbing the list of 
+books in the GR shelf followed by querying each one to see it's availability is 
+&lt;a href="https://github.com/rmanocha/oaklibsearcher/blob/master/oaklibsearcher.py"&gt;done already&lt;/a&gt;. 
+&lt;em&gt;GOODREADS_ACCESS_KEY&lt;/em&gt; and &lt;em&gt;GOODREADS_USER_ID&lt;/em&gt; is read in from &lt;em&gt;settings.py&lt;/em&gt; (a template for that is 
+&lt;a href="https://github.com/rmanocha/oaklibsearcher/blob/master/settings.py-def"&gt;available&lt;/a&gt;). For now, it simply 
+spits out the list of books along with it's availability (like below). A good v1.0 would be to implement 
+some form of a &lt;a href="https://github.com/rmanocha/oaklibsearcher/issues/11"&gt;notification system&lt;/a&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;oaklibapi&lt;span class="o"&gt;)&lt;/span&gt; ~ &lt;span class="o"&gt;[&lt;/span&gt;master &lt;span class="o"&gt;]&lt;/span&gt; $ python oaklibsearcher.py
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;The Sympathizer, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9780802123459&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;The sympathizer : a novel is available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Enlightenment Now: The Case &lt;span class="k"&gt;for&lt;/span&gt; Reason, Science, Humanism, and Progress, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9780525427575&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;ENLIGHTENMENT NOW : THE CASE FOR REASON, SCIENCE, HUMANISM, AND PROGRESS is not available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;The Better Angels of Our Nature: Why Violence Has Declined, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9780670022953&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;The better angels of our nature : why violence has declined is available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;A Deepness in the Sky &lt;span class="o"&gt;(&lt;/span&gt;Zones of Thought, &lt;span class="c1"&gt;#2), ISBN=9780812536355&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt; is not available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;The Wandering Earth: Classic Science Fiction Collection, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+No ISBN available. Skipping
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Old Man&lt;span class="s1"&gt;&amp;#39;s War (Old Man&amp;#39;&lt;/span&gt;s War, &lt;span class="c1"&gt;#1), ISBN=9780765309402&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Old man&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;s war is not available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Ultramarathon Man: Confessions of an All-Night Runner, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9781585422784&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Ultramarathon man : confessions of an all-night runner is available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;The Power, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9780316547611&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;The power : a novel is not available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;We Are Legion &lt;span class="o"&gt;(&lt;/span&gt;We Are Bob&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;Bobiverse, &lt;span class="c1"&gt;#1), ISBN=&lt;/span&gt;
+No ISBN available. Skipping
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Split Second, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+No ISBN available. Skipping
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Waking Gods &lt;span class="o"&gt;(&lt;/span&gt;Themis Files, &lt;span class="c1"&gt;#2), ISBN=9781101886724&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Waking gods is available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;And the Mountains Echoed, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9781594631764&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;And the mountains echoed is available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;The Hard Thing About Hard Things: Building a Business When There Are No Easy Answers, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9780062273208&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;The hard thing about hard things : building a business when there are no easy answers is not available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Sing, Unburied, Sing, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9781501126062&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Sing, unburied, sing : a novel is not available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;A Gentleman in Moscow, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9780670026197&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;A gentleman in Moscow is not available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Evicted: Poverty and Profit in the American City, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9780553447439&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Evicted : poverty and profit in the American city is available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Grant, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9781594204876&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Grant is not available
+Looking &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Why We Sleep: Unlocking the Power of Sleep and Dreams, &lt;span class="nv"&gt;ISBN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;9781501144318&lt;/span&gt;
+Book with &lt;span class="nv"&gt;title&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;Why we sleep : unlocking the power of sleep and dreams is not available
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;That's about all there is to it, for now. There are quiet a few improvements that can be made to it and I'll be working on 
+a few of them over the coming weeks; I'll post a follow up as and when I learn some new things.&lt;/p&gt;</content><category term="hobby-projects"></category><category term="python3"></category></entry><entry><title>Using contracts for Data Warehouse batch ETL processes</title><link href="/contracts-data-warehouse-batch-etl.html" rel="alternate"></link><published>2017-12-22T20:00:00-08:00</published><updated>2017-12-22T20:00:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2017-12-22:/contracts-data-warehouse-batch-etl.html</id><summary type="html">&lt;p&gt;using-contracts-data-warehouse-batch-etl&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Introduction&lt;/h1&gt;
 &lt;p&gt;Like many other companies, we have a Data Warehouse that brings together
 all our production data sources into a single location to enable various 
 business functions such as business intelligence, data analytics, 

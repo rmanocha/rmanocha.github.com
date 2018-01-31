@@ -21,7 +21,187 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="/contracts-data-warehouse-batch-etl.html">Using contracts for Data Warehouse batch ETL processes</a></h1>
+                    <h1 class="entry-title"><a href="/oakland-lib-goodreads-searcher.html">Searching the Oakland Library for books from your Goodreads Shelf</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2018-01-27T20:00:00-08:00">
+                Published: Sat 27 January 2018
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+        </address>
+<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
+<p>tags: <a href="/tag/hobby-projects.html">hobby-projects</a> <a href="/tag/python3.html">python3</a> </p>
+</footer><!-- /.post-info --><p>My only new years resolution this year was to read more books. Over the past couple of years, I had 
+essentially stopped reading books, and that realization was not a joyous one. Reading books 
+is a fun way to both learn and be entertained. Jhumpa Lahiri had a 
+<a href="https://www.goodreads.com/quotes/76236-that-s-the-thing-about-books-they-let-you-travel-without">good quote</a> 
+in The Namesake: <code>That's the thing about books. They let you travel without moving your feet.</code> 
+I'm happy to say, that so far, I've maintained my resolution, having finished 
+<a href="https://www.goodreads.com/book/show/4865.How_to_Win_Friends_and_Influence_People">two</a> 
+<a href="https://www.goodreads.com/book/show/7069.The_World_According_to_Garp">books</a> already 
+and am onto my <a href="https://www.goodreads.com/book/show/11468377-thinking-fast-and-slow">third one</a>.</p>
+<p>Anyways, since I have a subscription to the Oakland Library, I figured it'd be better for me to borrow 
+the books I want to read as opposed to buying them each time (even though it's fun to fill out a 
+bookshelf). At the same time, I started keeping track of books I want to read on 
+<a href="https://www.goodreads.com/">Goodreads</a> (the shelves they have, along with the ability to order 
+the books makes it a useful utility for me). The first book I borrowed from the library was 
+Thinking Fast and Slow and the process of me finding a copy to borrow left me wanting for a 
+better way to locate and hold a book. The story goes something like this: find the 
+next book I want to read from my GR shelf, search on the oakland library website for it's 
+availability, find out that it's not available, rinse and repeat until one
+becomes available (took me a few days). The putting it on hold was particulary important 
+since I had one occasion where I saw the book was available at a particular branch, 
+immdiately left to go pick it up (without putting it on hold) and by the time I 
+reached there (~15 minutes), someone had already borrowed it. I eventually did find a copy 
+at a different branch but I really wanted a better way of doing things.</p>
+<p>The solution to my problem was to build an API that accesses the Oakland Library Catalog (they 
+don't really have an API, so this library scrapes their website) and combine it with the 
+published API from GR (xml, really) to tell me whether the books on my shelf are available 
+at the library or not (and more in the future). At the same time, working on this project 
+gave me the opportunity to learn and use Python3, something I hadn't really done until now 
+(for no good reason besides laziness).</p>
+<h1>Building an "API" for the Oakland Library Catalog</h1>
+<p>To be able to search their catalog programatically, I had to write a simple scraper. This 
+was done using the awesome <a href="http://docs.python-requests.org/en/master/">requests</a> library 
+for making the http requests and the equally awesome 
+<a href="https://www.crummy.com/software/BeautifulSoup/">BeautilfulSoup</a> library to parse the HTML 
+response to find the elements I'm looking for. The code for all of this is available on 
+<a href="https://github.com/rmanocha/oaklibsearcher/blob/master/oaklibapi/api.py">github</a> and 
+should be fairly easy to follow. The <em>oaklibapi</em> module is intended to be an API module 
+though and, if needed, can be imported into other projects as well. Some sample code showing 
+how to use it:</p>
+<div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">oaklibapi</span> <span class="kn">import</span> <span class="n">OaklandLibraryAPI</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">oaklib</span> <span class="o">=</span> <span class="n">OaklandLibraryAPI</span><span class="p">(</span><span class="n">isbn</span><span class="o">=</span><span class="s2">&quot;9780060892999&quot;</span><span class="p">)</span> <span class="c1"># you can only search by the book&#39;s ISBN</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">oaklib</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="c1"># check if the book is available</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="bp">True</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">oaklib</span><span class="o">.</span><span class="n">title</span><span class="p">()</span> <span class="c1"># retrieve the title as returned by the Oakland Library Catalog</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="s1">&#39;A canticle for Leibowitz</span>
+</pre></div>
+
+
+<p>That's all there is to it as of now. I need to add a couple more enhancements, specifically 
+around <a href="https://github.com/rmanocha/oaklibsearcher/issues/3">retreiving the number of books available</a> 
+as well as <a href="https://github.com/rmanocha/oaklibsearcher/issues/6">the branches they're available at</a>.</p>
+<p>An interesting bit to note here is that BeautifulSoup since v4 has started giving users the option to 
+specify a parser. I ended up using the the <a href="http://lxml.de/">lxml parser</a> for this since I had to use it 
+to parse XML from the GR api anyways. I didn't benchmark things, but as documented, and based on my 
+very non-scientific observations, I did perceive an improvement in instantiating the <code>OaklandLibraryAPI</code> 
+class.</p>
+<h1>Integrating with the Goodreads API</h1>
+<p>Fortunately, GR does <a href="https://www.goodreads.com/api">publish an API</a>. It does seem rather antiquated 
+though - responses are in XML (some are in JSON, which is weird too; why do only some of the 
+resources return either XML or JSON while most only return XML) and there are no official 
+client libraries. There are <a href="https://github.com/sefakilic/goodreads/">libraries</a> 
+<a href="https://github.com/dasevilla/goodreads-python">available</a> on github. None of them really did what 
+I wanted them to do though (albeit, I only spent a short amount of time looking) and since it was 
+fairly easy to query the API and parse the response myself, I just ended up doing so, instead of 
+using one of the available libraries.</p>
+<p>My goal with this API was to simply retrieve my 
+<a href="https://www.goodreads.com/review/list/75811584?shelf=to-read">"to-read" bookshelf</a>. It took me 
+some time to figure out that I had to use the <a href="https://www.goodreads.com/api/index#reviews.list">reviews.list</a> 
+resource for this (go figure). Only other thing to note here that BeautifulSoup does not seem to have a 
+default parser for XML documents. I had to explicitly define <em>lxml</em> while parsing the response from the API 
+(as opposed to HTML, which does seem to have a default parser, which does throw a big &amp; ugly warning when 
+not overridden though).</p>
+<p>Here's some sample code on how to use <em>GoodreadsQueryAPI</em>:</p>
+<div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">goodreads_api</span> <span class="kn">import</span> <span class="n">GoodreadsQueryAPI</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">gr</span> <span class="o">=</span> <span class="n">GoodreadsQueryAPI</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;75811584&quot;</span><span class="p">,</span> <span class="n">access_key</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="c1"># insert your GR API access key for the second param</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="k">for</span> <span class="n">book</span> <span class="ow">in</span> <span class="n">gr</span><span class="o">.</span><span class="n">get_books</span><span class="p">():</span>
+   <span class="o">...</span><span class="p">:</span>     <span class="k">print</span><span class="p">(</span><span class="n">book</span><span class="p">)</span>
+   <span class="o">...</span><span class="p">:</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780802123459&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The Sympathizer&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780525427575&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Enlightenment Now: The Case for Reason, Science, Humanism, and Progress&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780670022953&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The Better Angels of Our Nature: Why Violence Has Declined&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780812536355&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;A Deepness in the Sky (Zones of Thought, #2)&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The Wandering Earth: Classic Science Fiction Collection&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780765309402&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s2">&quot;Old Man&#39;s War (Old Man&#39;s War, #1)&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781585422784&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Ultramarathon Man: Confessions of an All-Night Runner&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780316547611&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The Power&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;We Are Legion (We Are Bob) (Bobiverse, #1)&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Split Second&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781101886724&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Waking Gods (Themis Files, #2)&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781594631764&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;And the Mountains Echoed&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780062273208&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The Hard Thing About Hard Things: Building a Business When There Are No Easy Answers&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781501126062&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Sing, Unburied, Sing&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780670026197&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;A Gentleman in Moscow&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780553447439&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Evicted: Poverty and Profit in the American City&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781594204876&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Grant&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781501144318&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Why We Sleep: Unlocking the Power of Sleep and Dreams&#39;</span><span class="p">}</span>
+</pre></div>
+
+
+<p>Of-course, many improvements can be made to the interface, but this works for a v0.1 :). I think it'd also be good to 
+be able to pull <a href="https://github.com/rmanocha/oaklibsearcher/issues/1">the name of the author</a> as well as ordering 
+the books in the response by <a href="https://github.com/rmanocha/oaklibsearcher/issues/10">position defined by the user</a>.</p>
+<h1>Putting it all together</h1>
+<p>Having the API for the library and Goodreads makes it easy for us to put everything together. Grabbing the list of 
+books in the GR shelf followed by querying each one to see it's availability is 
+<a href="https://github.com/rmanocha/oaklibsearcher/blob/master/oaklibsearcher.py">done already</a>. 
+<em>GOODREADS_ACCESS_KEY</em> and <em>GOODREADS_USER_ID</em> is read in from <em>settings.py</em> (a template for that is 
+<a href="https://github.com/rmanocha/oaklibsearcher/blob/master/settings.py-def">available</a>). For now, it simply 
+spits out the list of books along with it's availability (like below). A good v1.0 would be to implement 
+some form of a <a href="https://github.com/rmanocha/oaklibsearcher/issues/11">notification system</a>.</p>
+<div class="highlight"><pre><span></span><span class="o">(</span>oaklibapi<span class="o">)</span> ~ <span class="o">[</span>master <span class="o">]</span> $ python oaklibsearcher.py
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>The Sympathizer, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780802123459</span>
+Book with <span class="nv">title</span><span class="o">=</span>The sympathizer : a novel is available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Enlightenment Now: The Case <span class="k">for</span> Reason, Science, Humanism, and Progress, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780525427575</span>
+Book with <span class="nv">title</span><span class="o">=</span>ENLIGHTENMENT NOW : THE CASE FOR REASON, SCIENCE, HUMANISM, AND PROGRESS is not available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>The Better Angels of Our Nature: Why Violence Has Declined, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780670022953</span>
+Book with <span class="nv">title</span><span class="o">=</span>The better angels of our nature : why violence has declined is available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>A Deepness in the Sky <span class="o">(</span>Zones of Thought, <span class="c1">#2), ISBN=9780812536355</span>
+Book with <span class="nv">title</span><span class="o">=</span> is not available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>The Wandering Earth: Classic Science Fiction Collection, <span class="nv">ISBN</span><span class="o">=</span>
+No ISBN available. Skipping
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Old Man<span class="s1">&#39;s War (Old Man&#39;</span>s War, <span class="c1">#1), ISBN=9780765309402</span>
+Book with <span class="nv">title</span><span class="o">=</span>Old man<span class="err">&#39;</span>s war is not available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Ultramarathon Man: Confessions of an All-Night Runner, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9781585422784</span>
+Book with <span class="nv">title</span><span class="o">=</span>Ultramarathon man : confessions of an all-night runner is available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>The Power, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780316547611</span>
+Book with <span class="nv">title</span><span class="o">=</span>The power : a novel is not available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>We Are Legion <span class="o">(</span>We Are Bob<span class="o">)</span> <span class="o">(</span>Bobiverse, <span class="c1">#1), ISBN=</span>
+No ISBN available. Skipping
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Split Second, <span class="nv">ISBN</span><span class="o">=</span>
+No ISBN available. Skipping
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Waking Gods <span class="o">(</span>Themis Files, <span class="c1">#2), ISBN=9781101886724</span>
+Book with <span class="nv">title</span><span class="o">=</span>Waking gods is available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>And the Mountains Echoed, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9781594631764</span>
+Book with <span class="nv">title</span><span class="o">=</span>And the mountains echoed is available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>The Hard Thing About Hard Things: Building a Business When There Are No Easy Answers, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780062273208</span>
+Book with <span class="nv">title</span><span class="o">=</span>The hard thing about hard things : building a business when there are no easy answers is not available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Sing, Unburied, Sing, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9781501126062</span>
+Book with <span class="nv">title</span><span class="o">=</span>Sing, unburied, sing : a novel is not available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>A Gentleman in Moscow, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780670026197</span>
+Book with <span class="nv">title</span><span class="o">=</span>A gentleman in Moscow is not available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Evicted: Poverty and Profit in the American City, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780553447439</span>
+Book with <span class="nv">title</span><span class="o">=</span>Evicted : poverty and profit in the American city is available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Grant, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9781594204876</span>
+Book with <span class="nv">title</span><span class="o">=</span>Grant is not available
+Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Why We Sleep: Unlocking the Power of Sleep and Dreams, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9781501144318</span>
+Book with <span class="nv">title</span><span class="o">=</span>Why we sleep : unlocking the power of sleep and dreams is not available
+</pre></div>
+
+
+<p>That's about all there is to it, for now. There are quiet a few improvements that can be made to it and I'll be working on 
+a few of them over the coming weeks; I'll post a follow up as and when I learn some new things.</p>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="/contracts-data-warehouse-batch-etl.html" rel="bookmark"
+                           title="Permalink to Using contracts for Data Warehouse batch ETL processes">Using contracts for Data Warehouse batch ETL processes</a></h1>
+                </header>
+
+                <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2017-12-22T20:00:00-08:00">
                 Published: Fri 22 December 2017
@@ -32,111 +212,10 @@
         </address>
 <p>In <a href="/category/devnotes.html">devnotes</a>.</p>
 <p>tags: <a href="/tag/systems-design.html">systems-design</a> </p>
-</footer><!-- /.post-info --><h1>Introduction</h1>
-<p>Like many other companies, we have a Data Warehouse that brings together
-all our production data sources into a single location to enable various 
-business functions such as business intelligence, data analytics, 
-experiment analysis etc.</p>
-<p>For a long time, we have done this by copying our production postgres 
-tables using a batch ETL process (we have in house scripts running 
-on a scheduler to do the copies every 'n' hours) without any transformations. 
-Consumers of the data warehouse, in turn, have used these tables to perform all of the 
-operations listed above. </p>
-<h1>The Problem</h1>
-<p>While this process has served us well, as we have moved to 
-<a href="https://www.upwork.com/blog/2017/01/upwork-modernization/">modernize our technology stack</a>, 
-this approach has started to show some limitations:</p>
-<ul>
-<li>One of the guiding principles of good software design is 
-<a href="https://martinfowler.com/articles/microservice-trade-offs.html#boundaries">strong module boundaries</a> 
-which allows one business domain to be designed and evolve independently of other domains. The systems 
-within these domains interact with each other over contracts at the http layer, not the data layer.
-By copying data maintained by these systems verbatim to the data warehouse (which represents a boundary), 
-we end up crossing these boundaries leading to the inadvertant coupling of these production and 
-data warehouse systems. This issue manifests itself in many areas:<ul>
-<li>Any migrations on the table or changes in the logic of the fields stored in the tables are 
-   blocked by the fact that these changes need to be propagated to the data warehouse and all 
-   consumers of these tables need to migrate their processes to account for them before
-   they can be released to our end users.</li>
-<li>Non product concerns (whether an entity was created from the mobile or desktop site, for example) 
-   leak into the production data models since these tables are, in turn, used for BI and related
-   processes.</li>
-</ul>
-</li>
-<li>As an engineering team, we're starting to adopt high scalability/availability data stores (DynamoDB) or 
-   versatile data stores (MongoDB, Cloudsearch). Since our ETL jobs can only use SQL interfaces (postgres), 
-   the data from these stores needs to be moved to a compatible data store, which usually means that the schema 
-   exposed won't be a verbatim copy of the production data models in these cases.</li>
-<li>Because we copy the production data models directly into the data warehouse, we lack a consistent schema that 
-   consumers of the data warehouse can use, suggest improvements for, ask questions of etc. The choices of each 
-   product team, instead, are exposed to these consumers leading to difficulities in understanding the data exposed
-   via each table (inconsistent column names and types, difficulties in understanding how to join tables, etc.). 
-   Furthermore, as we move more of our domains to be built as finer grained services, we naturally end up denormalizing
-   the data, spreading it across multiple tables maintained by different services. This leads to confusion in the 
-   data warehouse since it's hard to know which table should be used as the trusted source for any given 
-   piece of data.</li>
-</ul>
-<p>Again, this process has worked well for us, especially when we had a monolithic system 
-with a few handful of databases and tables. However, as we continue to scale in usage of the data warehouse, 
-in our technology as well as organizationally, our understanding of the drawbacks of the existing system as 
-well as the best practices involved in operating a data warehouse have evolved.</p>
-<p>An example of the drawbacks manifesting themselves came about earlier this year when we were wrapping up a rather 
-big modernization project. Modernization, for us, is not simply a rewrite from our legacy (Perl) stack to our 
-new (JVM based) stack but a complete rethinking of the bounded context (BC) we're working on. As such, this project 
-involved, among other things, a complete rethinking of the data model of BC in question (I'll 
-write more about this process, the choices we made, the difficulties we faced as well as the mistakes we made 
-in a later post). Since this was an existing BC, we already had a lot of internal processes spread across disparate 
-teams (marketing, analytics, product, customer support, data science and more) using the data from the existing 
-data model. And since we used to expose the raw tables from our legacy data model to these users, all their work was 
-tied directly to this one table. Because of this, when the time came to switch to the new data model, we not only had 
-to work with multiple teams to update their scripts but also had to ensure that the new processes they write are not 
-directly tied to the new tables in our production system we had built.</p>
-<h1>Solution - Purgatory</h1>
-<p>To solve the issues described above, we introduced and enforced boundaries between the data flows in our ETL jobs 
-as well as hand offs at various steps in these flows. The new workflow is described in the diagram below.</p>
-<p><a href="/images/purgatory_data_flow_responsibilities_handoffs.png"><img src="/images/purgatory_data_flow_responsibilities_handoffs.png" style="max-width: 100%" /></a></p>
-<p>The diagram above describes a product data model for the given BC (spread across multiple databases and multiple tables within each
-DB). This process requires that each development team of any given BC (and services within) will be responsible for creating, 
-running and maintaining an ETL job that feeds a view of their data in purgatory. The only consumer of this data will be the 
-data warehouse ETL job (and the team that owns it) which will, in turn, be responsible for extracting this data and exposing 
-it to their consumers in a schema that is consistent over time and where the data is reconciled at regular intervals.</p>
-<p>The introduction of purgatory allows:</p>
-<ul>
-<li>Product models to evolve independently from the data warehouse schema. The contract the product team exposes in purgatory 
-   requires them to ensure that any changes are backwards compatible (just as they do with their http contracts). In addition, 
-   any changes to the contract exposed via purgatory only needs to be coordinated with the data warehouse team and their ETL job 
-   as opposed to the entire data warehouse community of users.</li>
-<li>Separation of concerns for the product teams and the services they are building. These efforts can be focused on building 
-   (testing, releasing, A/B testing etc.) the product as well as maintaining the contracts with other product consumers 
-   (including purgatory) without having to focus on the impact of the changes to the data warehouse consumers (marketing, 
-   analytics, product, finance, trust &amp; safety etc. - all of whom have different requirements).</li>
-<li>Consistent ETL pipelines that various teams can reuse to expose data in purgatory.</li>
-<li>A single location to vet and reconcile our data before exposting it to users of the data warehouse.</li>
-<li>Allows us to define a consistent schema for UDW consumers<ul>
-<li>In the future, this process will also allow us to define multiple schemas and dimensions specific to the 
-   questions being asked within the data warehouse</li>
-</ul>
-</li>
-</ul>
-<h1>Implementation and Results</h1>
-<p>We ended up creating the purgatory ETL jobs using <a href="https://aws.amazon.com/datapipeline/">AWS Data Pipeline</a> (a subject 
-for another blog post) and delivering the data to the data warehouse ETL jobs in an RDS Postgres database. The second 
-ETL job only cares about the one table we expose to the data warehouse team where the data is combined from the 
-disparate databases and tables the production services use.</p>
-<p>This process has been running for the last 6 months at this point, and has been adopted by many other teams and projects 
-internally to do the same. The outcome of this has, so far, been encouraging. One of the vertical teams, for example, was 
-building an MVP of a product to see it's market viability. For such projects, time to market is a big concern, and so, we 
-ended up using postgres as a key value store (values being a serialized thrift entity stored in a jsonb column) to launch 
-as soon as we could. While this worked very well for the product, it would not have worked well for the data warehouse since 
-querying a jsonb column isn't exactly easy. Instead of making a simple copy of the table(s) in question, we copied our existing 
-AWS data pipeline jobs, made modifications to the transformation scripts, agreed with the data warehouse team on a set of contracts 
-(tables) we'd deliver to them and let them work on transforming the data from these tables into the final versions exposed in 
-the data warehouse to be used by the analytics and product teams to understand the efficacy of the new solution we'd launched.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+</footer><!-- /.post-info -->                <p>using-contracts-data-warehouse-batch-etl</p>
+                <a class="readmore" href="/contracts-data-warehouse-batch-etl.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>
