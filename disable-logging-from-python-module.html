@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
         <meta charset="utf-8" />
-        <title>Rishabh's blog - python3</title>
+        <title>Disable (or change) logging from a python module</title>
         <link rel="stylesheet" href="/theme/css/main.css" />
 
         <!--[if IE]>
@@ -14,15 +14,20 @@
         <header id="banner" class="body">
                 <h1><a href="/">Rishabh's blog </a></h1>
                 <nav><ul>
-                    <li><a href="/category/devnotes.html">devnotes</a></li>
+                    <li class="active"><a href="/category/devnotes.html">devnotes</a></li>
                     <li><a href="/category/misc.html">misc</a></li>
                     <li><a href="/category/reading.html">reading</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/disable-logging-from-python-module.html" rel="bookmark"
+           title="Permalink to Disable (or change) logging from a python module">Disable (or change) logging from a python module</a></h1>
+    </header>
 
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="/disable-logging-from-python-module.html">Disable (or change) logging from a python module</a></h1>
+    <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2019-01-21T12:45:00-08:00">
                 Published: Mon 21 January 2019
@@ -33,7 +38,7 @@
         </address>
 <p>In <a href="/category/devnotes.html">devnotes</a>.</p>
 <p>tags: <a href="/tag/python.html">python</a> <a href="/tag/python3.html">python3</a> <a href="/tag/logging.html">logging</a> </p>
-</footer><!-- /.post-info --><p>This was an interesting one. I have been playing around with the asyncio module
+</footer><!-- /.post-info -->      <p>This was an interesting one. I have been playing around with the asyncio module
 in Python 3.7 recently and noticed that it was injecting log messages at the
 INFO level, effectively spamming my logfile. Here's an example of what these
 messages looked like:</p>
@@ -61,36 +66,11 @@ to work quite well to get rid of them (<a href="https://stackoverflow.com/a/3452
 
 
 <p>I added this to the startup file I have where all the app wide configuration is
-set before my process starts.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+set before my process starts.</p>
+    </div><!-- /.entry-content -->
 
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="/oakland-lib-goodreads-searcher.html" rel="bookmark"
-                           title="Permalink to Searching the Oakland Library for books from your Goodreads Shelf">Searching the Oakland Library for books from your Goodreads Shelf</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2018-01-27T20:00:00-08:00">
-                Published: Sat 27 January 2018
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
-        </address>
-<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
-<p>tags: <a href="/tag/hobby-projects.html">hobby-projects</a> <a href="/tag/python3.html">python3</a> </p>
-</footer><!-- /.post-info -->                <p>A utility to search the Oakland library Catalog for available books from your Goodreads "to-read" shelf</p>
-                <a class="readmore" href="/oakland-lib-goodreads-searcher.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-                </ol><!-- /#posts-list -->
-                </section><!-- /#content -->
+  </article>
+</section>
         <section id="extras" class="body">
                 <div class="social">
                         <h2>social</h2>

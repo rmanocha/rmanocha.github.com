@@ -1,5 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Rishabh's blog - Rishabh Manocha</title><link href="/" rel="alternate"></link><link href="/feeds/rishabh-manocha.atom.xml" rel="self"></link><id>/</id><updated>2018-12-30T11:00:00-08:00</updated><entry><title>My year in books: 2018</title><link href="/2018-year-in-books.html" rel="alternate"></link><published>2018-12-30T11:00:00-08:00</published><updated>2018-12-30T11:00:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2018-12-30:/2018-year-in-books.html</id><summary type="html">&lt;p&gt;Books I enjoyed reading in 2018&lt;/p&gt;</summary><content type="html">&lt;p&gt;I kept some of my resolutions from last year - specifically reading more books.
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Rishabh's blog - Rishabh Manocha</title><link href="/" rel="alternate"></link><link href="/feeds/rishabh-manocha.atom.xml" rel="self"></link><id>/</id><updated>2019-01-21T12:45:00-08:00</updated><entry><title>Disable (or change) logging from a python module</title><link href="/disable-logging-from-python-module.html" rel="alternate"></link><published>2019-01-21T12:45:00-08:00</published><updated>2019-01-21T12:45:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2019-01-21:/disable-logging-from-python-module.html</id><summary type="html">&lt;p&gt;Disable or change logging level from a python module&lt;/p&gt;</summary><content type="html">&lt;p&gt;This was an interesting one. I have been playing around with the asyncio module
+in Python 3.7 recently and noticed that it was injecting log messages at the
+INFO level, effectively spamming my logfile. Here's an example of what these
+messages looked like:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;2019-01-21 08:04:42,559 - asyncio - INFO - poll 999.870 ms took 1002.400 ms: timeout
+2019-01-21 08:04:43,574 - asyncio - INFO - poll 999.894 ms took 1000.345 ms: timeout
+2019-01-21 08:04:44,590 - asyncio - INFO - poll 999.903 ms took 1000.161 ms: timeout
+2019-01-21 08:04:45,608 - asyncio - INFO - poll 999.893 ms took 1003.526 ms: timeout
+2019-01-21 08:04:46,627 - asyncio - INFO - poll 999.890 ms took 1002.870 ms: timeout
+2019-01-21 08:04:47,643 - asyncio - INFO - poll 999.881 ms took 1000.941 ms: timeout
+2019-01-21 08:04:48,661 - asyncio - INFO - poll 999.880 ms took 1002.105 ms: timeout
+2019-01-21 08:04:49,675 - asyncio - INFO - poll 999.908 ms took 1000.098 ms: timeout
+2019-01-21 08:04:50,691 - asyncio - INFO - poll 999.850 ms took 1001.450 ms: timeout
+2019-01-21 08:04:51,710 - asyncio - INFO - poll 999.861 ms took 1003.482 ms: timeout
+2019-01-21 08:04:52,724 - asyncio - INFO - poll 999.898 ms took 1000.244 ms: timeout
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I'm not sure how this information is useful to the consumer of the asyncio
+module (perhaps I'm missing something) but to me, this looks like something
+that should be logged at the DEBUG level, not INFO.&lt;/p&gt;
+&lt;p&gt;Regardless, given that I was seeing these messages in my logfile, I found this
+to work quite well to get rid of them (&lt;a href="https://stackoverflow.com/a/34525083"&gt;source&lt;/a&gt;):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getLogger&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;asyncio&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;setLevel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;WARNING&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  &lt;span class="c1"&gt;# Remove asyncio debug and info messages, but leave warnings.&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I added this to the startup file I have where all the app wide configuration is
+set before my process starts.&lt;/p&gt;</content><category term="python"></category><category term="python3"></category><category term="logging"></category></entry><entry><title>My year in books: 2018</title><link href="/2018-year-in-books.html" rel="alternate"></link><published>2018-12-30T11:00:00-08:00</published><updated>2018-12-30T11:00:00-08:00</updated><author><name>Rishabh Manocha</name></author><id>tag:None,2018-12-30:/2018-year-in-books.html</id><summary type="html">&lt;p&gt;Books I enjoyed reading in 2018&lt;/p&gt;</summary><content type="html">&lt;p&gt;I kept some of my resolutions from last year - specifically reading more books.
 I ended up going through a total of 29, some as phystical books, some as ebooks
 and others as audiobooks. I found that making a habit of reading books was good
 for me - every morning, I'd wake up and after making some coffee, would read

@@ -22,7 +22,59 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="/oakland-lib-goodreads-searcher.html">Searching the Oakland Library for books from your Goodreads Shelf</a></h1>
+                    <h1 class="entry-title"><a href="/disable-logging-from-python-module.html">Disable (or change) logging from a python module</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2019-01-21T12:45:00-08:00">
+                Published: Mon 21 January 2019
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+        </address>
+<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
+<p>tags: <a href="/tag/python.html">python</a> <a href="/tag/python3.html">python3</a> <a href="/tag/logging.html">logging</a> </p>
+</footer><!-- /.post-info --><p>This was an interesting one. I have been playing around with the asyncio module
+in Python 3.7 recently and noticed that it was injecting log messages at the
+INFO level, effectively spamming my logfile. Here's an example of what these
+messages looked like:</p>
+<div class="highlight"><pre><span></span>2019-01-21 08:04:42,559 - asyncio - INFO - poll 999.870 ms took 1002.400 ms: timeout
+2019-01-21 08:04:43,574 - asyncio - INFO - poll 999.894 ms took 1000.345 ms: timeout
+2019-01-21 08:04:44,590 - asyncio - INFO - poll 999.903 ms took 1000.161 ms: timeout
+2019-01-21 08:04:45,608 - asyncio - INFO - poll 999.893 ms took 1003.526 ms: timeout
+2019-01-21 08:04:46,627 - asyncio - INFO - poll 999.890 ms took 1002.870 ms: timeout
+2019-01-21 08:04:47,643 - asyncio - INFO - poll 999.881 ms took 1000.941 ms: timeout
+2019-01-21 08:04:48,661 - asyncio - INFO - poll 999.880 ms took 1002.105 ms: timeout
+2019-01-21 08:04:49,675 - asyncio - INFO - poll 999.908 ms took 1000.098 ms: timeout
+2019-01-21 08:04:50,691 - asyncio - INFO - poll 999.850 ms took 1001.450 ms: timeout
+2019-01-21 08:04:51,710 - asyncio - INFO - poll 999.861 ms took 1003.482 ms: timeout
+2019-01-21 08:04:52,724 - asyncio - INFO - poll 999.898 ms took 1000.244 ms: timeout
+</pre></div>
+
+
+<p>I'm not sure how this information is useful to the consumer of the asyncio
+module (perhaps I'm missing something) but to me, this looks like something
+that should be logged at the DEBUG level, not INFO.</p>
+<p>Regardless, given that I was seeing these messages in my logfile, I found this
+to work quite well to get rid of them (<a href="https://stackoverflow.com/a/34525083">source</a>):</p>
+<div class="highlight"><pre><span></span><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;asyncio&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>  <span class="c1"># Remove asyncio debug and info messages, but leave warnings.</span>
+</pre></div>
+
+
+<p>I added this to the startup file I have where all the app wide configuration is
+set before my process starts.</p>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="/oakland-lib-goodreads-searcher.html" rel="bookmark"
+                           title="Permalink to Searching the Oakland Library for books from your Goodreads Shelf">Searching the Oakland Library for books from your Goodreads Shelf</a></h1>
+                </header>
+
+                <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2018-01-27T20:00:00-08:00">
                 Published: Sat 27 January 2018
@@ -33,168 +85,10 @@
         </address>
 <p>In <a href="/category/devnotes.html">devnotes</a>.</p>
 <p>tags: <a href="/tag/hobby-projects.html">hobby-projects</a> <a href="/tag/python3.html">python3</a> </p>
-</footer><!-- /.post-info --><p>My only new years resolution this year was to read more books. Over the past couple of years, I had 
-essentially stopped reading books, and that realization was not a joyous one. Reading books 
-is a fun way to both learn and be entertained. Jhumpa Lahiri had a 
-<a href="https://www.goodreads.com/quotes/76236-that-s-the-thing-about-books-they-let-you-travel-without">good quote</a> 
-in The Namesake: <code>That's the thing about books. They let you travel without moving your feet.</code> 
-I'm happy to say, that so far, I've maintained my resolution, having finished 
-<a href="https://www.goodreads.com/book/show/4865.How_to_Win_Friends_and_Influence_People">two</a> 
-<a href="https://www.goodreads.com/book/show/7069.The_World_According_to_Garp">books</a> already 
-and am onto my <a href="https://www.goodreads.com/book/show/11468377-thinking-fast-and-slow">third one</a>.</p>
-<p>Anyways, since I have a subscription to the Oakland Library, I figured it'd be better for me to borrow 
-the books I want to read as opposed to buying them each time (even though it's fun to fill out a 
-bookshelf). At the same time, I started keeping track of books I want to read on 
-<a href="https://www.goodreads.com/">Goodreads</a> (the shelves they have, along with the ability to order 
-the books makes it a useful utility for me). The first book I borrowed from the library was 
-Thinking Fast and Slow and the process of me finding a copy to borrow left me wanting for a 
-better way to locate and hold a book. The story goes something like this: find the 
-next book I want to read from my GR shelf, search on the oakland library website for it's 
-availability, find out that it's not available, rinse and repeat until one
-becomes available (took me a few days). The putting it on hold was particulary important 
-since I had one occasion where I saw the book was available at a particular branch, 
-immdiately left to go pick it up (without putting it on hold) and by the time I 
-reached there (~15 minutes), someone had already borrowed it. I eventually did find a copy 
-at a different branch but I really wanted a better way of doing things.</p>
-<p>The solution to my problem was to build an API that accesses the Oakland Library Catalog (they 
-don't really have an API, so this library scrapes their website) and combine it with the 
-published API from GR (xml, really) to tell me whether the books on my shelf are available 
-at the library or not (and more in the future). At the same time, working on this project 
-gave me the opportunity to learn and use Python3, something I hadn't really done until now 
-(for no good reason besides laziness).</p>
-<h1>Building an "API" for the Oakland Library Catalog</h1>
-<p>To be able to search their catalog programatically, I had to write a simple scraper. This 
-was done using the awesome <a href="http://docs.python-requests.org/en/master/">requests</a> library 
-for making the http requests and the equally awesome 
-<a href="https://www.crummy.com/software/BeautifulSoup/">BeautilfulSoup</a> library to parse the HTML 
-response to find the elements I'm looking for. The code for all of this is available on 
-<a href="https://github.com/rmanocha/oaklibsearcher/blob/master/oaklibapi/api.py">github</a> and 
-should be fairly easy to follow. The <em>oaklibapi</em> module is intended to be an API module 
-though and, if needed, can be imported into other projects as well. Some sample code showing 
-how to use it:</p>
-<div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">oaklibapi</span> <span class="kn">import</span> <span class="n">OaklandLibraryAPI</span>
-
-<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">oaklib</span> <span class="o">=</span> <span class="n">OaklandLibraryAPI</span><span class="p">(</span><span class="n">isbn</span><span class="o">=</span><span class="s2">&quot;9780060892999&quot;</span><span class="p">)</span> <span class="c1"># you can only search by the book&#39;s ISBN</span>
-
-<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">oaklib</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="c1"># check if the book is available</span>
-<span class="n">Out</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="bp">True</span>
-
-<span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">oaklib</span><span class="o">.</span><span class="n">title</span><span class="p">()</span> <span class="c1"># retrieve the title as returned by the Oakland Library Catalog</span>
-<span class="n">Out</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="s1">&#39;A canticle for Leibowitz</span>
-</pre></div>
-
-
-<p>That's all there is to it as of now. I need to add a couple more enhancements, specifically 
-around <a href="https://github.com/rmanocha/oaklibsearcher/issues/3">retreiving the number of books available</a> 
-as well as <a href="https://github.com/rmanocha/oaklibsearcher/issues/6">the branches they're available at</a>.</p>
-<p>An interesting bit to note here is that BeautifulSoup since v4 has started giving users the option to 
-specify a parser. I ended up using the the <a href="http://lxml.de/">lxml parser</a> for this since I had to use it 
-to parse XML from the GR api anyways. I didn't benchmark things, but as documented, and based on my 
-very non-scientific observations, I did perceive an improvement in instantiating the <code>OaklandLibraryAPI</code> 
-class.</p>
-<h1>Integrating with the Goodreads API</h1>
-<p>Fortunately, GR does <a href="https://www.goodreads.com/api">publish an API</a>. It does seem rather antiquated 
-though - responses are in XML (some are in JSON, which is weird too; why do only some of the 
-resources return either XML or JSON while most only return XML) and there are no official 
-client libraries. There are <a href="https://github.com/sefakilic/goodreads/">libraries</a> 
-<a href="https://github.com/dasevilla/goodreads-python">available</a> on github. None of them really did what 
-I wanted them to do though (albeit, I only spent a short amount of time looking) and since it was 
-fairly easy to query the API and parse the response myself, I just ended up doing so, instead of 
-using one of the available libraries.</p>
-<p>My goal with this API was to simply retrieve my 
-<a href="https://www.goodreads.com/review/list/75811584?shelf=to-read">"to-read" bookshelf</a>. It took me 
-some time to figure out that I had to use the <a href="https://www.goodreads.com/api/index#reviews.list">reviews.list</a> 
-resource for this (go figure). Only other thing to note here that BeautifulSoup does not seem to have a 
-default parser for XML documents. I had to explicitly define <em>lxml</em> while parsing the response from the API 
-(as opposed to HTML, which does seem to have a default parser, which does throw a big &amp; ugly warning when 
-not overridden though).</p>
-<p>Here's some sample code on how to use <em>GoodreadsQueryAPI</em>:</p>
-<div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">from</span> <span class="nn">goodreads_api</span> <span class="kn">import</span> <span class="n">GoodreadsQueryAPI</span>
-
-<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">gr</span> <span class="o">=</span> <span class="n">GoodreadsQueryAPI</span><span class="p">(</span><span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;75811584&quot;</span><span class="p">,</span> <span class="n">access_key</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="c1"># insert your GR API access key for the second param</span>
-
-<span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="k">for</span> <span class="n">book</span> <span class="ow">in</span> <span class="n">gr</span><span class="o">.</span><span class="n">get_books</span><span class="p">():</span>
-   <span class="o">...</span><span class="p">:</span>     <span class="k">print</span><span class="p">(</span><span class="n">book</span><span class="p">)</span>
-   <span class="o">...</span><span class="p">:</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780802123459&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The Sympathizer&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780525427575&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Enlightenment Now: The Case for Reason, Science, Humanism, and Progress&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780670022953&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The Better Angels of Our Nature: Why Violence Has Declined&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780812536355&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;A Deepness in the Sky (Zones of Thought, #2)&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The Wandering Earth: Classic Science Fiction Collection&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780765309402&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s2">&quot;Old Man&#39;s War (Old Man&#39;s War, #1)&quot;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781585422784&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Ultramarathon Man: Confessions of an All-Night Runner&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780316547611&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The Power&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;We Are Legion (We Are Bob) (Bobiverse, #1)&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Split Second&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781101886724&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Waking Gods (Themis Files, #2)&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781594631764&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;And the Mountains Echoed&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780062273208&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The Hard Thing About Hard Things: Building a Business When There Are No Easy Answers&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781501126062&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Sing, Unburied, Sing&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780670026197&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;A Gentleman in Moscow&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9780553447439&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Evicted: Poverty and Profit in the American City&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781594204876&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Grant&#39;</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;isbn&#39;</span><span class="p">:</span> <span class="s1">&#39;9781501144318&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Why We Sleep: Unlocking the Power of Sleep and Dreams&#39;</span><span class="p">}</span>
-</pre></div>
-
-
-<p>Of-course, many improvements can be made to the interface, but this works for a v0.1 :). I think it'd also be good to 
-be able to pull <a href="https://github.com/rmanocha/oaklibsearcher/issues/1">the name of the author</a> as well as ordering 
-the books in the response by <a href="https://github.com/rmanocha/oaklibsearcher/issues/10">position defined by the user</a>.</p>
-<h1>Putting it all together</h1>
-<p>Having the API for the library and Goodreads makes it easy for us to put everything together. Grabbing the list of 
-books in the GR shelf followed by querying each one to see it's availability is 
-<a href="https://github.com/rmanocha/oaklibsearcher/blob/master/oaklibsearcher.py">done already</a>. 
-<em>GOODREADS_ACCESS_KEY</em> and <em>GOODREADS_USER_ID</em> is read in from <em>settings.py</em> (a template for that is 
-<a href="https://github.com/rmanocha/oaklibsearcher/blob/master/settings.py-def">available</a>). For now, it simply 
-spits out the list of books along with it's availability (like below). A good v1.0 would be to implement 
-some form of a <a href="https://github.com/rmanocha/oaklibsearcher/issues/11">notification system</a>.</p>
-<div class="highlight"><pre><span></span><span class="o">(</span>oaklibapi<span class="o">)</span> ~ <span class="o">[</span>master <span class="o">]</span> $ python oaklibsearcher.py
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>The Sympathizer, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780802123459</span>
-Book with <span class="nv">title</span><span class="o">=</span>The sympathizer : a novel is available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Enlightenment Now: The Case <span class="k">for</span> Reason, Science, Humanism, and Progress, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780525427575</span>
-Book with <span class="nv">title</span><span class="o">=</span>ENLIGHTENMENT NOW : THE CASE FOR REASON, SCIENCE, HUMANISM, AND PROGRESS is not available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>The Better Angels of Our Nature: Why Violence Has Declined, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780670022953</span>
-Book with <span class="nv">title</span><span class="o">=</span>The better angels of our nature : why violence has declined is available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>A Deepness in the Sky <span class="o">(</span>Zones of Thought, <span class="c1">#2), ISBN=9780812536355</span>
-Book with <span class="nv">title</span><span class="o">=</span> is not available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>The Wandering Earth: Classic Science Fiction Collection, <span class="nv">ISBN</span><span class="o">=</span>
-No ISBN available. Skipping
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Old Man<span class="s1">&#39;s War (Old Man&#39;</span>s War, <span class="c1">#1), ISBN=9780765309402</span>
-Book with <span class="nv">title</span><span class="o">=</span>Old man<span class="err">&#39;</span>s war is not available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Ultramarathon Man: Confessions of an All-Night Runner, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9781585422784</span>
-Book with <span class="nv">title</span><span class="o">=</span>Ultramarathon man : confessions of an all-night runner is available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>The Power, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780316547611</span>
-Book with <span class="nv">title</span><span class="o">=</span>The power : a novel is not available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>We Are Legion <span class="o">(</span>We Are Bob<span class="o">)</span> <span class="o">(</span>Bobiverse, <span class="c1">#1), ISBN=</span>
-No ISBN available. Skipping
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Split Second, <span class="nv">ISBN</span><span class="o">=</span>
-No ISBN available. Skipping
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Waking Gods <span class="o">(</span>Themis Files, <span class="c1">#2), ISBN=9781101886724</span>
-Book with <span class="nv">title</span><span class="o">=</span>Waking gods is available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>And the Mountains Echoed, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9781594631764</span>
-Book with <span class="nv">title</span><span class="o">=</span>And the mountains echoed is available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>The Hard Thing About Hard Things: Building a Business When There Are No Easy Answers, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780062273208</span>
-Book with <span class="nv">title</span><span class="o">=</span>The hard thing about hard things : building a business when there are no easy answers is not available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Sing, Unburied, Sing, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9781501126062</span>
-Book with <span class="nv">title</span><span class="o">=</span>Sing, unburied, sing : a novel is not available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>A Gentleman in Moscow, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780670026197</span>
-Book with <span class="nv">title</span><span class="o">=</span>A gentleman in Moscow is not available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Evicted: Poverty and Profit in the American City, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9780553447439</span>
-Book with <span class="nv">title</span><span class="o">=</span>Evicted : poverty and profit in the American city is available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Grant, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9781594204876</span>
-Book with <span class="nv">title</span><span class="o">=</span>Grant is not available
-Looking <span class="k">for</span> <span class="nv">title</span><span class="o">=</span>Why We Sleep: Unlocking the Power of Sleep and Dreams, <span class="nv">ISBN</span><span class="o">=</span><span class="m">9781501144318</span>
-Book with <span class="nv">title</span><span class="o">=</span>Why we sleep : unlocking the power of sleep and dreams is not available
-</pre></div>
-
-
-<p>That's about all there is to it, for now. There are quiet a few improvements that can be made to it and I'll be working on 
-a few of them over the coming weeks; I'll post a follow up as and when I learn some new things.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+</footer><!-- /.post-info -->                <p>A utility to search the Oakland library Catalog for available books from your Goodreads "to-read" shelf</p>
+                <a class="readmore" href="/oakland-lib-goodreads-searcher.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>

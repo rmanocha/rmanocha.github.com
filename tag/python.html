@@ -22,7 +22,59 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="/rpi-ios-home-automation.html">Experiments with RaspberryPi and iOS for home automation</a></h1>
+                    <h1 class="entry-title"><a href="/disable-logging-from-python-module.html">Disable (or change) logging from a python module</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2019-01-21T12:45:00-08:00">
+                Published: Mon 21 January 2019
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="/author/rishabh-manocha.html">Rishabh Manocha</a>
+        </address>
+<p>In <a href="/category/devnotes.html">devnotes</a>.</p>
+<p>tags: <a href="/tag/python.html">python</a> <a href="/tag/python3.html">python3</a> <a href="/tag/logging.html">logging</a> </p>
+</footer><!-- /.post-info --><p>This was an interesting one. I have been playing around with the asyncio module
+in Python 3.7 recently and noticed that it was injecting log messages at the
+INFO level, effectively spamming my logfile. Here's an example of what these
+messages looked like:</p>
+<div class="highlight"><pre><span></span>2019-01-21 08:04:42,559 - asyncio - INFO - poll 999.870 ms took 1002.400 ms: timeout
+2019-01-21 08:04:43,574 - asyncio - INFO - poll 999.894 ms took 1000.345 ms: timeout
+2019-01-21 08:04:44,590 - asyncio - INFO - poll 999.903 ms took 1000.161 ms: timeout
+2019-01-21 08:04:45,608 - asyncio - INFO - poll 999.893 ms took 1003.526 ms: timeout
+2019-01-21 08:04:46,627 - asyncio - INFO - poll 999.890 ms took 1002.870 ms: timeout
+2019-01-21 08:04:47,643 - asyncio - INFO - poll 999.881 ms took 1000.941 ms: timeout
+2019-01-21 08:04:48,661 - asyncio - INFO - poll 999.880 ms took 1002.105 ms: timeout
+2019-01-21 08:04:49,675 - asyncio - INFO - poll 999.908 ms took 1000.098 ms: timeout
+2019-01-21 08:04:50,691 - asyncio - INFO - poll 999.850 ms took 1001.450 ms: timeout
+2019-01-21 08:04:51,710 - asyncio - INFO - poll 999.861 ms took 1003.482 ms: timeout
+2019-01-21 08:04:52,724 - asyncio - INFO - poll 999.898 ms took 1000.244 ms: timeout
+</pre></div>
+
+
+<p>I'm not sure how this information is useful to the consumer of the asyncio
+module (perhaps I'm missing something) but to me, this looks like something
+that should be logged at the DEBUG level, not INFO.</p>
+<p>Regardless, given that I was seeing these messages in my logfile, I found this
+to work quite well to get rid of them (<a href="https://stackoverflow.com/a/34525083">source</a>):</p>
+<div class="highlight"><pre><span></span><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;asyncio&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>  <span class="c1"># Remove asyncio debug and info messages, but leave warnings.</span>
+</pre></div>
+
+
+<p>I added this to the startup file I have where all the app wide configuration is
+set before my process starts.</p>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="/rpi-ios-home-automation.html" rel="bookmark"
+                           title="Permalink to Experiments with RaspberryPi and iOS for home automation">Experiments with RaspberryPi and iOS for home automation</a></h1>
+                </header>
+
+                <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2015-11-22T08:00:00-08:00">
                 Published: Sun 22 November 2015
@@ -33,33 +85,10 @@
         </address>
 <p>In <a href="/category/devnotes.html">devnotes</a>.</p>
 <p>tags: <a href="/tag/raspberrypi.html">raspberrypi</a> <a href="/tag/ios.html">ios</a> <a href="/tag/python.html">python</a> </p>
-</footer><!-- /.post-info --><p>Ever since I bought a couple of RaspberryPi's a year or so ago, I've been interested in doing some home automation with them. However, 
-I never really got down to it (for various reasons; lazy, no easy tutorial available, parts missing, life etc.) until the past couple 
-of months or so.</p>
-<p>I finally got around to buying a <a href="http://www.amazon.com/gp/product/B00C8O9KHA">relay</a> and 
-<a href="http://www.amazon.com/gp/product/B00M5WLZDW">female to female cables</a>. With these in hand, I followed a few tutorials on YouTube
-to get a light setup to be controlled by the GPIO pins and the relay (<a href="https://www.youtube.com/watch?v=WpM1aq4B8-A">some</a> <a href="https://www.youtube.com/watch?v=oaf_zQcrg7g">good</a> <a href="https://www.youtube.com/watch?v=3u45htuQeag">videos</a>).
-In the end, the whole setup ends up looking something like the below (I'll go into more detail about this setup in a later post perhaps):</p>
-<p><img alt="RPI Setup" src="http://i.imgur.com/pt6aft9.jpg"></p>
-<p>With the wires all setup, the next step is to actual use the setup to be able to remotely turn on or off a light. This is where the <a href="https://github.com/rmanocha/rpi_lights/blob/master/flask_light.py">flask
-app</a> I wrote comes in. As you might see, the GPIO pins being used are #9 and #2. 
-These two represent the two ends of the relay board (in my setup anyways). Running this as a webserver on the raspberry pi (you need to run as root
-otherwise the rpi is unable to access the GPIO pins) allows me to then make a simple GET request to <code>/toggle</code> for one light and <code>/toggle_big</code> for the other.</p>
-<p>Now, while I had an Android device, hitting these endpoints was easy. I simply setup a Tasker widget on my home screen that when touched would make a GET request
-to one of these two endpoints which would, in turn, simply toggle the light on or off. However, now that I use an iOS device, Tasker (or any other widgets) are not an option
-anymore (which sucks, IMO). This was a good opportunity to get my feet wet in the iOS development world. There are a bazillion tutorials online on how to get started, so I won't
-go into them here. I would say that making a simple GET request via swift turned out to be a harder task than I had envisioned it to be (though I guess, python, natively makes it just
-as hard). At the end of the day, <a href="https://github.com/rmanocha/RPiLightApp/blob/master/RPiLight/ViewController.swift">this is what I came up with</a>. Essentially a viewport with two buttons; each
-one simply toggles the specific light on or off. As you can see from the image below, I have not figured out how to center the buttons in the view; not such a big deal for me for now.</p>
-<p><img alt="iOS App" src="http://i.imgur.com/8FQimr8.png"></p>
-<p>The next step for me is to get force touch working on my iPhone 6s so that the app does not need to open up for me to be able to turn the light on or off (similar to a widget on Android devices).
-Additionally, I need to buy another relay board and a wireless dongle for the pi so that I can do the same thing for the lamps in my bedroom.</p>
-<p>So that's mostly it. This setup works well for now and gave me a good opportunity to play around with a few new and interesting technologies/languages.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+</footer><!-- /.post-info -->                <p>Some notes and thoughts on how to go about doing home automation using a RaspberryPi followed up by an iOS app to use the features.</p>
+                <a class="readmore" href="/rpi-ios-home-automation.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>
